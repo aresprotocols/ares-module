@@ -1,0 +1,11 @@
+{
+  "name": "mock-operator",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "GPL 3.0",
+  "scripts": {
+  },
+  "dependencies": {
+    "@polkadot/api": "^2.8.1"
+  }
+}
