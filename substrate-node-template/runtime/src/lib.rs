@@ -267,14 +267,11 @@ impl pallet_sudo::Trait for Runtime {
 /// Configure the template pallet in pallets/template.
 impl pallet_template::Trait for Runtime {
 	type Event = Event;
-	type Callback = AresCall<Runtime>;
 }
 
 /// Configure the ares pallet in pallets/pallet-ares.
 impl pallet_ares::Trait for Runtime {
 	type Event = Event;
-	type Currency = Balances;
-	type Callback = AresCall<Runtime>;
 	type ValidityPeriod = ValidityPeriod;
 }
 
@@ -299,11 +296,9 @@ construct_runtime!(
 		TransactionPayment: pallet_transaction_payment::{Module, Storage},
 		Sudo: pallet_sudo::{Module, Call, Config<T>, Storage, Event<T>},
 		// Include the custom logic from the template pallet in the runtime.
-		// TemplateModule: pallet_template::{Module, Call, Storage, Event<T>},
-		// AresModule: pallet_ares::{Module, Call, Storage, Event<T>},
 		// Declare the ares pallet
 		AresModule: pallet_ares::{Module, Call, Storage, Event<T>},
-		TemplateModule: pallet_template::{Module, Call, Storage},
+		TemplateModule: pallet_template::{Module, Call, Storage, Event<T>},
 	}
 );
 

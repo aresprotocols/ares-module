@@ -4,11 +4,8 @@
 /// Learn more about FRAME and the core library of Substrate FRAME pallets:
 /// https://substrate.dev/docs/en/knowledgebase/runtime/frame
 
-use frame_support::{decl_module, decl_storage, decl_event, decl_error, dispatch, traits::Get, debug};
-use frame_system::{ensure_signed, ensure_root, Trait as SystemTrait};
-use pallet_ares::{CallbackWithParameter, Event, Trait as AresTrait, BalanceOf};
-use codec::{Decode, Encode};
-use sp_std::prelude::*;
+use frame_support::{decl_module, decl_storage, decl_event, decl_error, dispatch, traits::Get};
+use frame_system::ensure_signed;
 
 #[cfg(test)]
 mod mock;
@@ -17,9 +14,9 @@ mod mock;
 mod tests;
 
 /// Configure the pallet by specifying the parameters and types on which it depends.
-pub trait Trait: AresTrait {
-    type Event: From<Event<Self>> + Into<<Self as SystemTrait>::Event>;
-	type Callback: From<Call<Self>> + Into<<Self as AresTrait>::Callback>;
+pub trait Trait: frame_system::Trait {
+	/// Because this pallet emits events, it depends on the runtime's definition of an event.
+	type Event: From<Event<Self>> + Into<<Self as frame_system::Trait>::Event>;
 }
 
 // The pallet's runtime storage items.
@@ -29,20 +26,21 @@ decl_storage! {
 	// This name may be updated, but each pallet in the runtime must use a unique name.
 	// ---------------------------------vvvvvvvvvvvvvv
 	trait Store for Module<T: Trait> as TemplateModule {
-		// the result of the oracle call
-		pub Result get(fn get_result): i128;
+		// Learn more about declaring storage items:
+		// https://substrate.dev/docs/en/knowledgebase/runtime/storage#declaring-storage-items
+		Something get(fn something): Option<u32>;
 	}
 }
 
 // Pallets use events to inform users when important changes are made.
 // https://substrate.dev/docs/en/knowledgebase/runtime/events
-// decl_event!(
-// 	pub enum Event<T> where AccountId = <T as frame_system::Trait>::AccountId {
-// 		/// Event documentation should end with an array that provides descriptive names for event
-// 		/// parameters. [something, who]
-// 		SomethingStored(u32, AccountId),
-// 	}
-// );
+decl_event!(
+	pub enum Event<T> where AccountId = <T as frame_system::Trait>::AccountId {
+		/// Event documentation should end with an array that provides descriptive names for event
+		/// parameters. [something, who]
+		SomethingStored(u32, AccountId),
+	}
+);
 
 // Errors inform users that something went wrong.
 decl_error! {
@@ -65,37 +63,41 @@ decl_module! {
 		// Events must be initialized if they are used by the pallet.
 		fn deposit_event() = default;
 
+		/// An example dispatchable that takes a singles value as a parameter, writes the value to
+		/// storage and emits an event. This function must be dispatched by a signed extrinsic.
 		#[weight = 10_000 + T::DbWeight::get().writes(1)]
-		pub fn send_request(origin, operator: T::AccountId, specid: Vec<u8>) -> dispatch::DispatchResult {
-			ensure_signed(origin.clone())?;
+		pub fn do_something(origin, something: u32) -> dispatch::DispatchResult {
+			// Check that the extrinsic was signed and get the signer.
+			// This function will return an error if the extrinsic is not signed.
+			// https://substrate.dev/docs/en/knowledgebase/runtime/origin
+			let who = ensure_signed(origin)?;
 
-			let parameters = ("get", "https://min-api.cryptocompare.com/data/pricemultifull?fsyms=ETH&tsyms=USD", "path", "RAW.ETH.USD.PRICE", "times", "100000000");
 			// Update storage.
-			let call: <T as Trait>::Callback = Call::callback(vec![]).into();
-            <pallet_ares::Module<T>>::initiate_request(origin, operator, specid, 0, parameters.encode(), BalanceOf::<T>::from(100), call.into())?;
+			Something::put(something);
 
+			// Emit an event.
+			Self::deposit_event(RawEvent::SomethingStored(something, who));
+			// Return a successful DispatchResult
 			Ok(())
 		}
 
+		/// An example dispatchable that may throw a custom error.
 		#[weight = 10_000 + T::DbWeight::get().reads_writes(1,1)]
-		pub fn callback(origin, result: Vec<u8>) -> dispatch::DispatchResult {
-			ensure_root(origin)?;
+		pub fn cause_error(origin) -> dispatch::DispatchResult {
+			let _who = ensure_signed(origin)?;
 
-			let r : i128 = i128::decode(&mut &result[..]).map_err(|err| err.what())?;
-            <Result>::put(r);
-
-            Ok(())
+			// Read a value from storage.
+			match Something::get() {
+				// Return an error if the value has not been set.
+				None => Err(Error::<T>::NoneValue)?,
+				Some(old) => {
+					// Increment the value read from storage; will error in the event of overflow.
+					let new = old.checked_add(1).ok_or(Error::<T>::StorageOverflow)?;
+					// Update the value in storage with the incremented result.
+					Something::put(new);
+					Ok(())
+				},
+			}
 		}
 	}
-}
-
-impl <T: Trait> CallbackWithParameter for Call<T> {
-    fn with_result(&self, result: Vec<u8>) -> Option<Self> {
-        match *self {
-            Call::callback(_) => {
-                Some(Call::callback(result))
-            },
-            _ => None
-        }
-    }
 }
