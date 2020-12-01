@@ -8,6 +8,12 @@ use frame_support::{decl_module, decl_storage, decl_event, decl_error, ensure,  
 use sp_std::prelude::*;
 use frame_system::ensure_signed;
 
+#[cfg(test)]
+mod mock;
+
+#[cfg(test)]
+mod tests;
+
 /// Configure the pallet by specifying the parameters and types on which it depends.
 pub trait Trait: frame_system::Trait {
 	/// Because this pallet emits events, it depends on the runtime's definition of an event.
@@ -31,17 +37,15 @@ decl_storage! {
 	// This name may be updated, but each pallet in the runtime must use a unique name.
 	trait Store for Module<T: Trait> as AresModule {
 		// A set of all registered Operator
-		// TODO migrate to 'natural' hasher once migrated to 2.0
 		pub Operators get(fn operator): map hasher(blake2_128_concat) T::AccountId => bool;
 
 		// A running counter used internally to identify the next request
 		pub NextRequestIdentifier get(fn request_identifier): u64;
 
 		// A map of details of each running request
-		// TODO migrate to 'natural' hasher once migrated to 2.0
-		pub Requests get(fn request): map hasher(blake2_128_concat) u64 => (T::AccountId, T::BlockNumber);
+		pub Requests get(fn request): map hasher(blake2_128_concat) u64 => (T::AccountId, T::BlockNumber, SpecIndex);
 
-		Results get(fn results): map hasher(blake2_128_concat) Vec<u8> => u64;
+		pub OracleResults get(fn oracle_results): map hasher(blake2_128_concat) SpecIndex => Vec<u8>;
 	}
 }
 
@@ -129,7 +133,7 @@ decl_module! {
 			NextRequestIdentifier::put(request_id + 1);
 
 			let now = frame_system::Module::<T>::block_number();
-			Requests::<T>::insert(request_id.clone(), (operator.clone(), now));
+			Requests::<T>::insert(request_id.clone(), (operator.clone(), now, spec_index.clone()));
 
 			Self::deposit_event(RawEvent::OracleRequest(operator, spec_index, request_id, who, data_version, data, "Ares.callback".into()));
 
@@ -142,10 +146,12 @@ decl_module! {
 			let who : <T as frame_system::Trait>::AccountId = ensure_signed(origin.clone())?;
 
 			ensure!(<Requests<T>>::contains_key(&request_id), Error::<T>::UnknownRequest);
-			let (operator, _) = <Requests<T>>::get(&request_id);
+			let (operator, _, _) = <Requests<T>>::get(&request_id);
 			ensure!(operator == who, Error::<T>::WrongOperator);
 
-			let (operator, _) = <Requests<T>>::take(request_id.clone());
+			let (operator, _, spec_index) = <Requests<T>>::take(request_id.clone());
+
+			OracleResults::insert(&spec_index,result.clone());
 
 			Self::deposit_event(RawEvent::OracleAnswer(operator, request_id, who, result));
 
@@ -154,7 +160,7 @@ decl_module! {
 
 		// Identify requests that are considered dead and remove them
 		fn on_finalize(n: T::BlockNumber) {
-			for (request_identifier, (_account_id, block_number)) in Requests::<T>::iter() {
+			for (request_identifier, (_account_id, block_number, _spec_index)) in Requests::<T>::iter() {
 				if n > block_number + T::ValidityPeriod::get() {
 					// No result has been received in time
 					Requests::<T>::remove(request_identifier);
