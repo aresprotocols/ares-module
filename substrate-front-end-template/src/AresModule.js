@@ -1,0 +1,173 @@
+import React, { useEffect, useState } from 'react';
+import { Form, Table, Grid, Card, Statistic } from 'semantic-ui-react';
+
+import { useSubstrate } from './substrate-lib';
+import { TxButton } from './substrate-lib/components';
+
+import config from './config';
+
+function Main(props) {
+  const { api, keyring } = useSubstrate();
+  const { accountPair } = props;
+
+  // The transaction submission status
+  const [status, setStatus] = useState('');
+
+  // The currently stored value
+  const [registered, setRegistered] = useState(false);
+
+  // The Ares Operators
+  const [operatorAddress, setOperatorAddress] = useState('');
+
+  // price
+  const [btcPrice, setBtcPrice] = useState(0);
+  const [ethPrice, setEthPrice] = useState(0);
+  const [dotPrice, setDotPrice] = useState(0);
+
+  useEffect(() => {
+    let unsubscribe;
+    if (accountPair === null) {
+      return
+    }
+    if (typeof (accountPair) == "undefined") {
+      return
+    }
+    setOperatorAddress(accountPair.address);
+    console.log(operatorAddress);
+
+    api.query.aresModule.operators(accountPair.address, newValue => {
+      console.log(newValue)
+      setRegistered(newValue)
+    }).then(unsub => {
+      unsubscribe = unsub;
+    })
+      .catch(console.error);
+
+    return () => unsubscribe && unsubscribe();
+  }, [accountPair]);
+
+  useEffect(() => {
+    let unsubscribe;
+
+    api.query.aresModule.oracleResults.multi(["btcusdt","ethusdt","dotusdt"], newValues => {
+      console.log(newValues)
+      const [ btcprice , ethprice , dotprice ] = newValues;
+      setBtcPrice(parseInt(btcprice,16))
+      setEthPrice(parseInt(ethprice,16))
+      setDotPrice(parseInt(dotprice,16))
+    }).then(unsub => {
+      unsubscribe = unsub;
+    })
+      .catch(console.error);
+
+  }, [api.query.aresModule.oracleResults]);
+
+
+  return (
+    <Grid.Column width={8}>
+      <h1>Are Module</h1>
+      <Card centered>
+        <Card.Content textAlign='center'>
+          <Statistic
+            label='have registered?'
+            value={String(registered)}
+          />
+        </Card.Content>
+      </Card>
+      <Form>
+        <Form.Field style={{ textAlign: 'center' }}>
+          <TxButton
+            accountPair={accountPair}
+            label='register'
+            type='SIGNED-TX'
+            setStatus={setStatus}
+            attrs={{
+              palletRpc: 'aresModule',
+              callable: 'registerOperator',
+              inputParams: [],
+              paramFields: []
+            }}
+          />
+          <TxButton
+            accountPair={accountPair}
+            label='unregister'
+            type='SIGNED-TX'
+            setStatus={setStatus}
+            attrs={{
+              palletRpc: 'aresModule',
+              callable: 'unregisterOperator',
+              inputParams: [],
+              paramFields: []
+            }}
+          />
+        </Form.Field>
+        <Form.Field style={{ textAlign: 'center' }}>
+          <TxButton
+            accountPair={accountPair}
+            label='get btc price'
+            type='SIGNED-TX'
+            setStatus={setStatus}
+            attrs={{
+              palletRpc: 'aresModule',
+              callable: 'initiateRequest',
+              inputParams: [config.OPERATOR_ADDRESS,"btcusdt", "1", "0"],
+              paramFields: [true, true, true, true]
+            }}
+          />
+          <TxButton
+            accountPair={accountPair}
+            label='get eth price'
+            type='SIGNED-TX'
+            setStatus={setStatus}
+            attrs={{
+              palletRpc: 'aresModule',
+              callable: 'initiateRequest',
+              inputParams: [config.OPERATOR_ADDRESS,"ethusdt", "1", "0"],
+              paramFields: [true, true, true, true]
+            }}
+          />
+          <TxButton
+            accountPair={accountPair}
+            label='get dot price'
+            type='SIGNED-TX'
+            setStatus={setStatus}
+            attrs={{
+              palletRpc: 'aresModule',
+              callable: 'initiateRequest',
+              inputParams: [config.OPERATOR_ADDRESS,"dotusdt", "1", "0"],
+              paramFields: [true, true, true, true]
+            }}
+          />
+        </Form.Field>
+        <div style={{ overflowWrap: 'break-word' }}>{status}</div>
+      </Form>
+      <Table celled striped size='small'>
+        <Table.Header>
+          <Table.Row>
+            <Table.HeaderCell colSpan='3'>Price</Table.HeaderCell>
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
+          <Table.Row>
+            <Table.Cell>BTC-USDT</Table.Cell>
+          <Table.Cell textAlign='right'>{String(btcPrice)}</Table.Cell>
+          </Table.Row>
+          <Table.Row>
+            <Table.Cell>ETH-USDT</Table.Cell>
+          <Table.Cell textAlign='right'>{String(ethPrice)}</Table.Cell>
+          </Table.Row>
+          <Table.Row>
+            <Table.Cell>DOT-USDT</Table.Cell>
+          <Table.Cell textAlign='right'>{String(dotPrice)}</Table.Cell>
+          </Table.Row>
+        </Table.Body>
+      </Table>
+    </Grid.Column>
+  );
+}
+
+export default function AresModule(props) {
+  const { api } = useSubstrate();
+  return (api.query.aresModule && api.query.aresModule.operators
+    ? <Main {...props} /> : null);
+}

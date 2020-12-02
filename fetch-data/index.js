@@ -9,7 +9,7 @@ async function fundOperatorAccountIfNeeded(api, aliceAccount, operatorAccount) {
     let { data: { free: previousFree }, nonce: previousNonce } = await api.query.system.account(operatorAccount.address);
 
     if (previousFree.isZero()) {
-        await api.tx.balances.transfer(operatorAccount.address, 130000000).signAndSend(aliceAccount, async ({ status }) => {
+        await api.tx.balances.transfer(operatorAccount.address, 1000000000000000).signAndSend(aliceAccount, async ({ status }) => {
           if (status.isFinalized) {
             resolve();
           }
@@ -20,6 +20,24 @@ async function fundOperatorAccountIfNeeded(api, aliceAccount, operatorAccount) {
     }
   });
 }
+
+async function registerOperatorIfNeeded(api, operatorAccount) {
+  // Register the operator, this is supposed to be initiated once by the operator itself
+  return new Promise(async (resolve) => {
+    const operator = await api.query.aresModule.operators(operatorAccount.address);
+    if(operator.isFalse) {
+        await api.tx.aresModule.registerOperator().signAndSend(operatorAccount, async ({ status }) => {
+          if (status.isFinalized) {
+            console.log('Operator registered');
+            resolve();
+          }
+        });
+    } else {
+      resolve();
+    }
+  });
+}
+
 
 async function main() {
     await cryptoWaitReady();
@@ -46,33 +64,52 @@ async function main() {
 
     await fundOperatorAccountIfNeeded(api, aliceAccount, operatorAccount);
 
-    const result = await api.query.templateModule.result();
-    console.log(`Result is currently ${result}`);
+    const result = await api.query.aresModule.oracleResults("btcusdt");
+    console.log(`BTCUSDT is currently ${result}`);
+
 
     // Listen for ares.OracleRequest events
     api.query.system.events((events) => {
-        events.forEach(({ event })  => {
-          //console.log(`\t${event.section}:${event.method}`);
+        events.forEach(record => {
+          // extract the phase, event and the event types
+          const { event, phase} = record;
+          const types = event.typeDef;
+
+          // show what we are busy with
+          const eventName = `${event.section}:${
+            event.method
+          }:: (phase=${phase.toString()})`;
+
           if (event.section == "aresModule" && event.method == "OracleRequest") {
-            const id = event.data[2].toString();
-            const value = Math.floor(Math.random() * Math.floor(100));
-            const result = api.createType('i128', value).toHex(true);
-            // Respond to the request with a dummy result
-            api.tx.aresModule.callback(parseInt(id), result).signAndSend(operatorAccount, async ({ events = [], status }) => {
-                if (status.isFinalized) {
-                  const updatedResult = await api.query.example.result();
-                  console.log(`Result is now ${updatedResult}`);
-                  process.exit();
-                }
-              });
-            console.log(`Operator answered to request ${id} with ${value}`);
-        }
+              // loop through each of the parameters, displaying the type and data
+              const params = event.data.map(
+                (data, index) => `${types[index].type}: ${data.toString()}`
+              );
+
+              console.log(`${params}`);
+              console.log(eventName);
+
+              const id = event.data[2].toString();
+              const value = Math.floor(Math.random() * Math.floor(100));
+              const result = api.createType('i128', value).toHex();
+              // Respond to the request with a dummy result
+              api.tx.aresModule.callback(parseInt(id), result).signAndSend(operatorAccount, async ({ events = [], status }) => {
+                  if (status.isFinalized) {
+                    const updatedResult = await api.query.aresModule.oracleResults("btcusdt");
+                    console.log(`Result is now ${updatedResult}`);
+                    //process.exit();
+                  }
+                });
+              console.log(`Operator answered to request ${id} with ${value}`);
+          }
       });
     });
 
+    await registerOperatorIfNeeded(api, operatorAccount);
+
 
     // Then simulate a call from alice
-    await api.tx.templateModule.sendRequest(operatorAccount.address, "").signAndSend(aliceAccount);
+    await api.tx.aresModule.initiateRequest(operatorAccount.address, "btcusdt", "1", "").signAndSend(aliceAccount);
     console.log(`Request sent`);
 }
 
