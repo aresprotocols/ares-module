@@ -1,18 +1,19 @@
 git pull
 docker-compose down
 
-cd /home/server/ares_dome/huobiaggregate/
+cd   huobiaggregate/
 mvn  install -Dmaven.test.skip=true
-mv   /home/server/ares_dome/huobiaggregate/target/huobiaggregate-0.0.1-SNAPSHOT.jar   /home/server/ares_dome/huobiaggregate/docker/app.jar
-cd  /home/server/ares_dome/huobiaggregate/docker/
+mv   target/huobiaggregate-0.0.1-SNAPSHOT.jar   docker/app.jar
+cd   docker/
 docker build -t  huobiaggregate:last  .
 
+cd ../../
 
-cd  /home/server/ares_dome/okexaggregate/
+cd  okexaggregate/
 mvn  install -Dmaven.test.skip=true
-mv  /home/server/ares_dome/okexaggregate/target/okexaggregate-0.0.1-SNAPSHOT.jar   /home/server/ares_dome/okexaggregate/docker/app.jar
-cd  /home/server/ares_dome/okexaggregate/docker/
+mv  target/okexaggregate-0.0.1-SNAPSHOT.jar    docker/app.jar
+cd  docker/
 docker build -t  okexaggregate:last  .
 
-cd  /home/server/ares_dome/
+cd  ../../
 docker-compose up -d 
