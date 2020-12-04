@@ -1,4 +1,4 @@
-package com.ares.uitl;
+package com.ares.model;
 
 import java.math.BigDecimal;
 
@@ -23,6 +23,14 @@ public class PriceModel {
 		this.price = price;
 		this.ts=ts;
 	}
+	
+	public PriceModel(String symbol, double price) {
+		super();
+		this.symbol = symbol;
+		this.price = price;
+	}
+	
+	
 	
 	
 }
