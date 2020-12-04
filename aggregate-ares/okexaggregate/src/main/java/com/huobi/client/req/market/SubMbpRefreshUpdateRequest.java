@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import com.huobi.constant.enums.DepthLevels;
 
 @Data
-@Builder
+@Builder	
 @AllArgsConstructor
 @NoArgsConstructor
 public class SubMbpRefreshUpdateRequest {
