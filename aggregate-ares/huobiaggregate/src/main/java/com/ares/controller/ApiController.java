@@ -24,7 +24,7 @@ public class ApiController {
 	}
 	
 	@RequestMapping("getprice/{symbol}/{market}")
-	private R getprice(@PathVariable("keypair") String symbol,@PathVariable("market") String market) {
+	private R getprice(@PathVariable("symbol") String symbol,@PathVariable("market") String market) {
 		return R.ok().put("data", redisUtils.getCach(symbol,market));
 	}
 	
