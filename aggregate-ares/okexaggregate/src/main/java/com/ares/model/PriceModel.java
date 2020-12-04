@@ -24,5 +24,13 @@ public class PriceModel {
 		this.ts=ts;
 	}
 	
+	public PriceModel(String symbol, double price) {
+		super();
+		this.symbol = symbol;
+		this.price = price;
+	}
+	
+	
+	
 	
 }
