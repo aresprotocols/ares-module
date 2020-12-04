@@ -1,4 +1,4 @@
-package com.ares.uitl;
+package com.ares.model;
 
 import java.math.BigDecimal;
 

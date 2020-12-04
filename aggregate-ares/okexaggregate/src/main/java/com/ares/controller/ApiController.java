@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alibaba.fastjson.JSONObject;
 import com.ares.uitl.R;
 import com.ares.uitl.RedisUtils;
 
@@ -25,7 +26,7 @@ public class ApiController {
 	
 	@RequestMapping("getprice/{symbol}/{market}")
 	private R getprice(@PathVariable("symbol") String symbol,@PathVariable("market") String market) {
-		return R.ok().put("data", redisUtils.getCach(symbol,market));
+		return R.ok().put("data", JSONObject.parseObject(redisUtils.getCach(symbol,market)+""));
 	}
 	
 	
