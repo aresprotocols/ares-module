@@ -45,7 +45,7 @@ decl_storage! {
 		// A map of details of each running request
 		pub Requests get(fn request): map hasher(blake2_128_concat) u64 => (T::AccountId, T::BlockNumber, SpecIndex);
 
-		pub OracleResults get(fn oracle_results): map hasher(blake2_128_concat) SpecIndex => Vec<u8>;
+		pub OracleResults get(fn oracle_results): map hasher(blake2_128_concat) SpecIndex => u64;
 	}
 }
 
@@ -57,7 +57,7 @@ decl_event!(
 		OracleRequest(AccountId, SpecIndex, u64, AccountId, DataVersion, Vec<u8>, Vec<u8>),
 
 		// A request has been answered.
-		OracleAnswer(AccountId, u64, AccountId, Vec<u8>),
+		OracleAnswer(AccountId, u64, AccountId, u64),
 
 		// A new operator has been registered
 		OperatorRegistered(AccountId),
@@ -141,7 +141,7 @@ decl_module! {
 		}
 
 		#[weight = 10_000]
-        fn callback(origin, request_id: u64, result: Vec<u8>) -> dispatch::DispatchResult {
+        fn callback(origin, request_id: u64, result: u64) -> dispatch::DispatchResult {
 			//let _who = ensure_signed(origin)?;
 			let who : <T as frame_system::Trait>::AccountId = ensure_signed(origin.clone())?;
 
