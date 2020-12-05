@@ -16,6 +16,7 @@ import TemplateModule from './TemplateModule';
 import Transfer from './Transfer';
 import Upgrade from './Upgrade';
 import AresModule from './AresModule';
+import Aggregates from './Aggregates';
 
 function Main () {
   const [accountAddress, setAccountAddress] = useState(null);
@@ -65,6 +66,9 @@ function Main () {
           <Grid.Row stretched>
             <Balances />
           </Grid.Row>
+          <Grid.Row stretched>
+            <Aggregates />
+          </Grid.Row>
           <Grid.Row>
             <Transfer accountPair={accountPair} />
             <Upgrade accountPair={accountPair} />
@@ -77,8 +81,9 @@ function Main () {
             <TemplateModule accountPair={accountPair} />
             <AresModule accountPair={accountPair} />
           </Grid.Row>
-        </Grid>
-      </Container>
+
+	      </Grid>
+	  </Container>
       <DeveloperConsole />
     </div>
   );
