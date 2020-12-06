@@ -81,9 +81,8 @@ function Main () {
             <TemplateModule accountPair={accountPair} />
             <AresModule accountPair={accountPair} />
           </Grid.Row>
-
-	      </Grid>
-	  </Container>
+        </Grid>
+      </Container>
       <DeveloperConsole />
     </div>
   );

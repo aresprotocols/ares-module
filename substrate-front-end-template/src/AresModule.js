@@ -6,8 +6,8 @@ import { TxButton } from './substrate-lib/components';
 
 import config from './config';
 
-function Main(props) {
-  const { api, keyring } = useSubstrate();
+function Main (props) {
+  const { api } = useSubstrate();
   const { accountPair } = props;
 
   // The transaction submission status
@@ -27,41 +27,41 @@ function Main(props) {
   useEffect(() => {
     let unsubscribe;
     if (accountPair === null) {
-      return
+      return;
     }
-    if (typeof (accountPair) == "undefined") {
-      return
+    if (typeof (accountPair) === 'undefined') {
+      return;
     }
     setOperatorAddress(accountPair.address);
     console.log(operatorAddress);
 
     api.query.aresModule.operators(accountPair.address, newValue => {
-      console.log(newValue)
-      setRegistered(newValue)
+      console.log(newValue);
+      setRegistered(newValue);
     }).then(unsub => {
       unsubscribe = unsub;
     })
       .catch(console.error);
 
     return () => unsubscribe && unsubscribe();
-  }, [accountPair]);
+  }, [accountPair, api.query.aresModule, operatorAddress]);
 
   useEffect(() => {
     let unsubscribe;
 
-    api.query.aresModule.oracleResults.multi(["btcusdt","ethusdt","dotusdt"], newValues => {
-      console.log(newValues)
-      const [ btcprice , ethprice , dotprice ] = newValues;
-      setBtcPrice(parseInt(btcprice,16))
-      setEthPrice(parseInt(ethprice,16))
-      setDotPrice(parseInt(dotprice,16))
+    api.query.aresModule.oracleResults.multi(['btcusdt', 'ethusdt', 'dotusdt'], newValues => {
+      console.log(newValues);
+      const [btcprice, ethprice, dotprice] = newValues;
+      setBtcPrice(parseInt(btcprice) / 1000);
+      setEthPrice(parseInt(ethprice) / 1000);
+      setDotPrice(parseInt(dotprice) / 1000);
     }).then(unsub => {
       unsubscribe = unsub;
     })
       .catch(console.error);
 
+    return () => unsubscribe && unsubscribe();
   }, [api.query.aresModule.oracleResults]);
-
 
   return (
     <Grid.Column width={8}>
@@ -110,7 +110,7 @@ function Main(props) {
             attrs={{
               palletRpc: 'aresModule',
               callable: 'initiateRequest',
-              inputParams: [config.OPERATOR_ADDRESS,"btcusdt", "1", "0"],
+              inputParams: [config.OPERATOR_ADDRESS, 'btcusdt', '1', '0'],
               paramFields: [true, true, true, true]
             }}
           />
@@ -122,7 +122,7 @@ function Main(props) {
             attrs={{
               palletRpc: 'aresModule',
               callable: 'initiateRequest',
-              inputParams: [config.OPERATOR_ADDRESS,"ethusdt", "1", "0"],
+              inputParams: [config.OPERATOR_ADDRESS, 'ethusdt', '1', '0'],
               paramFields: [true, true, true, true]
             }}
           />
@@ -134,7 +134,7 @@ function Main(props) {
             attrs={{
               palletRpc: 'aresModule',
               callable: 'initiateRequest',
-              inputParams: [config.OPERATOR_ADDRESS,"dotusdt", "1", "0"],
+              inputParams: [config.OPERATOR_ADDRESS, 'dotusdt', '1', '0'],
               paramFields: [true, true, true, true]
             }}
           />
@@ -150,15 +150,15 @@ function Main(props) {
         <Table.Body>
           <Table.Row>
             <Table.Cell>BTC-USDT</Table.Cell>
-          <Table.Cell textAlign='right'>{String(btcPrice)}</Table.Cell>
+            <Table.Cell textAlign='right'>{String(btcPrice)}</Table.Cell>
           </Table.Row>
           <Table.Row>
             <Table.Cell>ETH-USDT</Table.Cell>
-          <Table.Cell textAlign='right'>{String(ethPrice)}</Table.Cell>
+            <Table.Cell textAlign='right'>{String(ethPrice)}</Table.Cell>
           </Table.Row>
           <Table.Row>
             <Table.Cell>DOT-USDT</Table.Cell>
-          <Table.Cell textAlign='right'>{String(dotPrice)}</Table.Cell>
+            <Table.Cell textAlign='right'>{String(dotPrice)}</Table.Cell>
           </Table.Row>
         </Table.Body>
       </Table>
@@ -166,7 +166,7 @@ function Main(props) {
   );
 }
 
-export default function AresModule(props) {
+export default function AresModule (props) {
   const { api } = useSubstrate();
   return (api.query.aresModule && api.query.aresModule.operators
     ? <Main {...props} /> : null);
