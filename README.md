@@ -1,8 +1,18 @@
 # ares-module
-It's the pallets repo for Ares Protocol
+It's the pallets repo for Ares Protocol 
 
-1. substrate-node-template is substrate node
+### substrate-node-template is substrate node
+   *  `pallet-ares` deal aggregator register and unregister
+   *  `pallet-ares` oracle request and result callback 
+   *   add `pallet-ares` test code
+### substrate-front-end-template 
+  * the front end displays the registration and results of events on the chain
+  * query the oracle price and data warehouse price
 
-2. fetch-data is ares oracle scanner，its function is fetch aggregate price and return to oracle
+### fetch-data is ares oracle scanner
+  * listen for Oracle event requests
+  * fetch aggregate price and return to oracle
 
-3. aggregate-ares is ares aggregate，it fetch huobi and binance and okex price，and privide api for oracle visite and use. 
+### aggregate-ares is ares data warehouse 
+  * it fetch huobi and binance and okex price
+  * privide api for oracle visite and use. 
