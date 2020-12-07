@@ -3,7 +3,7 @@ const { cryptoWaitReady }  = require('@polkadot/util-crypto');
 
 const PHRASE = 'entire material egg meadow latin bargain dutch coral blood melt acoustic thought';
 
-async function fundOperatorAccountIfNeeded(api, aliceAccount, aggregatorAccount) {
+async function fundAggregatorAccountIfNeeded(api, aliceAccount, aggregatorAccount) {
   return new Promise(async (resolve) => {
 
     let { data: { free: previousFree }, nonce: previousNonce } = await api.query.system.account(aggregatorAccount.address);
@@ -21,12 +21,12 @@ async function fundOperatorAccountIfNeeded(api, aliceAccount, aggregatorAccount)
   });
 }
 
-async function registerOperatorIfNeeded(api, aggregatorAccount) {
+async function registerAggregatorIfNeeded(api, aggregatorAccount) {
   // Register the aggregator, this is supposed to be initiated once by the aggregator itself
   return new Promise(async (resolve) => {
-    const operator = await api.query.aresModule.operators(aggregatorAccount.address);
+    const operator = await api.query.aresModule.aggregators(aggregatorAccount.address);
     if(operator.isFalse) {
-        await api.tx.aresModule.registerOperator().signAndSend(aggregatorAccount, async ({ status }) => {
+        await api.tx.aresModule.registerAggregator().signAndSend(aggregatorAccount, async ({ status }) => {
           if (status.isFinalized) {
             console.log('Operator registered');
             resolve();
@@ -81,7 +81,6 @@ async function main() {
         provider: wsProvider,
         types: {
             SpecIndex: "Vec<u8>",
-            RequestIdentifier: "u64",
             DataVersion: "u64"
         }
     });
@@ -115,7 +114,7 @@ async function main() {
     const aliceAccount = keyring.addFromUri('//Alice');
     console.log(`alice ${aliceAccount.address}`);
 
-    await fundOperatorAccountIfNeeded(api, aliceAccount, aggregatorAccount);
+    await fundAggregatorAccountIfNeeded(api, aliceAccount, aggregatorAccount);
 
     const result = await api.query.aresModule.oracleResults("btcusdt");
 
@@ -148,7 +147,7 @@ async function main() {
                 var price=JSON.parse(data).data.price * 1000;
                 const result = api.createType('i128', price).toHex();
                 // Respond to the request with a dummy result
-                api.tx.aresModule.callback(parseInt(id), result).signAndSend(aggregatorAccount, async ({ events = [], status }) => {
+                api.tx.aresModule.feedResult(parseInt(id), result).signAndSend(aggregatorAccount, async ({ events = [], status }) => {
                     if (status.isFinalized) {
                       const updatedResult = await api.query.aresModule.oracleResults(SpecIndex);
                       console.log(`${SpecIndex} price is now ${updatedResult/1000}`);
@@ -161,7 +160,7 @@ async function main() {
       });
     });
 
-    await registerOperatorIfNeeded(api, aggregatorAccount);
+    await registerAggregatorIfNeeded(api, aggregatorAccount);
 
     // Then simulate a call from alice
     await api.tx.aresModule.initiateRequest(aggregatorAccount.address, "btcusdt", "1", "").signAndSend(aliceAccount);

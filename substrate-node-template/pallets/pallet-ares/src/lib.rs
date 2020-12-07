@@ -23,9 +23,9 @@ pub trait Trait: frame_system::Trait {
 	type ValidityPeriod: Get<Self::BlockNumber>;
 }
 
-// Uniquely identify a request's specification understood by an Operator
+// Uniquely identify a request's specification understood by an Aggregator
 pub type SpecIndex = Vec<u8>;
-// Uniquely identify a request for a considered Operator
+// Uniquely identify a request for a considered Aggregator
 //pub type RequestIdentifier = u64;
 // The version of the serialized data format
 pub type DataVersion = u64;
@@ -36,11 +36,11 @@ decl_storage! {
 	// A unique name is used to ensure that the pallet's storage items are isolated.
 	// This name may be updated, but each pallet in the runtime must use a unique name.
 	trait Store for Module<T: Trait> as AresModule {
-		// A set of all registered Operator
-		pub Operators get(fn operator): map hasher(blake2_128_concat) T::AccountId => bool;
+		// A set of all registered Aggregator
+		pub Aggregators get(fn aggregator): map hasher(blake2_128_concat) T::AccountId => bool;
 
 		// A running counter used internally to identify the next request
-		pub NextRequestIdentifier get(fn request_identifier): u64;
+		pub NextRequestId get(fn request_id): u64;
 
 		// A map of details of each running request
 		pub Requests get(fn request): map hasher(blake2_128_concat) u64 => (T::AccountId, T::BlockNumber, SpecIndex);
@@ -57,13 +57,13 @@ decl_event!(
 		OracleRequest(AccountId, SpecIndex, u64, AccountId, DataVersion, Vec<u8>, Vec<u8>),
 
 		// A request has been answered.
-		OracleAnswer(AccountId, u64, AccountId, u64),
+		OracleResult(AccountId, u64, AccountId, u64),
 
-		// A new operator has been registered
-		OperatorRegistered(AccountId),
+		// A new aggregator has been registered
+		AggregatorRegistered(AccountId),
 
-		// An existing operator has been unregistered
-		OperatorUnregistered(AccountId),
+		// An existing aggregator has been unregistered
+		AggregatorUnregistered(AccountId),
 
 		// A request didn't receive any result in time
 		RemoveRequest(u64),
@@ -73,14 +73,14 @@ decl_event!(
 // Errors inform users that something went wrong.
 decl_error! {
 	pub enum Error for Module<T: Trait> {
-	    // Manipulating an unknown operator
-		UnknownOperator,
+	    // Manipulating an unknown aggregator
+		UnknownAggregator,
 		// Manipulating an unknown request
 		UnknownRequest,
-		// Not the expected operator
-		WrongOperator,
-		// An operator is already registered.
-		OperatorAlreadyRegistered,
+		// Not the expected aggregator
+		WrongAggregator,
+		// An aggregator is already registered.
+		AggregatorAlreadyRegistered,
 	}
 }
 
@@ -95,65 +95,65 @@ decl_module! {
 		// Events must be initialized if they are used by the pallet.
 		fn deposit_event() = default;
 
-		// Register a new Operator.
-		// Fails with `OperatorAlreadyRegistered` if this Operator (identified by `origin`) has already been registered.
+		// Register a new Aggregator.
+		// Fails with `AggregatorAlreadyRegistered` if this Aggregator (identified by `origin`) has already been registered.
 		#[weight = 10_000]
-		pub fn register_operator(origin) -> dispatch::DispatchResult {
+		pub fn register_aggregator(origin) -> dispatch::DispatchResult {
 			let who : <T as frame_system::Trait>::AccountId = ensure_signed(origin)?;
 
-			ensure!(!<Operators<T>>::contains_key(who.clone()), Error::<T>::OperatorAlreadyRegistered);
+			ensure!(!<Aggregators<T>>::contains_key(who.clone()), Error::<T>::AggregatorAlreadyRegistered);
 
-			Operators::<T>::insert(&who, true);
+			Aggregators::<T>::insert(&who, true);
 
-			Self::deposit_event(RawEvent::OperatorRegistered(who));
+			Self::deposit_event(RawEvent::AggregatorRegistered(who));
 
 			Ok(())
 		}
 
-		// Unregisters an existing Operator
+		// Unregisters an existing Aggregator
 		#[weight = 10_000]
-		pub fn unregister_operator(origin) -> dispatch::DispatchResult {
+		pub fn unregister_aggregator(origin) -> dispatch::DispatchResult {
 			let who : <T as frame_system::Trait>::AccountId = ensure_signed(origin)?;
 
-			if Operators::<T>::take(who.clone()) {
-				Self::deposit_event(RawEvent::OperatorUnregistered(who));
+			if Aggregators::<T>::take(who.clone()) {
+				Self::deposit_event(RawEvent::AggregatorUnregistered(who));
 				Ok(())
 			} else {
-				Err(Error::<T>::UnknownOperator.into())
+				Err(Error::<T>::UnknownAggregator.into())
 			}
 		}
 
 		#[weight = 10_000]
-		pub fn initiate_request(origin, operator: T::AccountId, spec_index: SpecIndex, data_version: DataVersion, data: Vec<u8>) -> dispatch::DispatchResult {
+		pub fn initiate_request(origin, aggregator: T::AccountId, spec_index: SpecIndex, data_version: DataVersion, data: Vec<u8>) -> dispatch::DispatchResult {
 			let who : <T as frame_system::Trait>::AccountId = ensure_signed(origin.clone())?;
 
-			ensure!(<Operators<T>>::contains_key(operator.clone()), Error::<T>::UnknownOperator);
+			ensure!(<Aggregators<T>>::contains_key(aggregator.clone()), Error::<T>::UnknownAggregator);
 
-			let request_id = NextRequestIdentifier::get();
-			NextRequestIdentifier::put(request_id + 1);
+			let request_id = NextRequestId::get();
+			NextRequestId::put(request_id + 1);
 
 			let now = frame_system::Module::<T>::block_number();
-			Requests::<T>::insert(request_id.clone(), (operator.clone(), now, spec_index.clone()));
+			Requests::<T>::insert(request_id.clone(), (aggregator.clone(), now, spec_index.clone()));
 
-			Self::deposit_event(RawEvent::OracleRequest(operator, spec_index, request_id, who, data_version, data, "Ares.callback".into()));
+			Self::deposit_event(RawEvent::OracleRequest(aggregator, spec_index, request_id, who, data_version, data, "Ares.callback".into()));
 
 			Ok(())
 		}
 
 		#[weight = 10_000]
-        fn callback(origin, request_id: u64, result: u64) -> dispatch::DispatchResult {
+        fn feed_result(origin, request_id: u64, result: u64) -> dispatch::DispatchResult {
 			//let _who = ensure_signed(origin)?;
 			let who : <T as frame_system::Trait>::AccountId = ensure_signed(origin.clone())?;
 
 			ensure!(<Requests<T>>::contains_key(&request_id), Error::<T>::UnknownRequest);
-			let (operator, _, _) = <Requests<T>>::get(&request_id);
-			ensure!(operator == who, Error::<T>::WrongOperator);
+			let (aggregator, _, _) = <Requests<T>>::get(&request_id);
+			ensure!(aggregator == who, Error::<T>::WrongAggregator);
 
-			let (operator, _, spec_index) = <Requests<T>>::take(request_id.clone());
+			let (aggregator, _, spec_index) = <Requests<T>>::take(request_id.clone());
 
 			OracleResults::insert(&spec_index,result.clone());
 
-			Self::deposit_event(RawEvent::OracleAnswer(operator, request_id, who, result));
+			Self::deposit_event(RawEvent::OracleResult(aggregator, request_id, who, result));
 
 			Ok(())
 		}

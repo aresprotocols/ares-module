@@ -11,14 +11,14 @@ fn request_no_register() {
 }
 
 #[test]
-fn operators_can_be_registered() {
+fn aggregators_can_be_registered() {
 	new_test_ext().execute_with(|| {
-		assert!(AresModule::register_operator(Origin::signed(1)).is_ok());
-		assert!(AresModule::unregister_operator(Origin::signed(1)).is_ok());
+		assert!(AresModule::register_aggregator(Origin::signed(1)).is_ok());
+		assert!(AresModule::unregister_aggregator(Origin::signed(1)).is_ok());
 	});
 
 	new_test_ext().execute_with(|| {
-		assert!(AresModule::unregister_operator(Origin::signed(1)).is_err());
+		assert!(AresModule::unregister_aggregator(Origin::signed(1)).is_err());
 	});
 
 }
@@ -26,8 +26,8 @@ fn operators_can_be_registered() {
 #[test]
 fn unknown_operator() {
 	new_test_ext().execute_with(|| {
-		assert!(AresModule::register_operator(Origin::signed(1)).is_ok());
-		assert!(<Operators<Test>>::contains_key(1));
+		assert!(AresModule::register_aggregator(Origin::signed(1)).is_ok());
+		assert!(<Aggregators<Test>>::contains_key(1));
 		assert!(AresModule::initiate_request(Origin::signed(1), 2, vec![], 1, vec![]).is_err());
 	});
 }
@@ -35,25 +35,25 @@ fn unknown_operator() {
 #[test]
 fn operator_no_register() {
 	new_test_ext().execute_with(|| {
-		assert!(AresModule::callback(Origin::signed(1), 0, 10).is_err());
+		assert!(AresModule::feed_result(Origin::signed(1), 0, 10).is_err());
 	});
 }
 
 #[test]
 fn callback_not_match_operator() {
 	new_test_ext().execute_with(|| {
-		assert!(AresModule::register_operator(Origin::signed(1)).is_ok());
+		assert!(AresModule::register_aggregator(Origin::signed(1)).is_ok());
 		assert!(AresModule::initiate_request(Origin::signed(2), 1, vec![], 1, vec![]).is_ok());
-		assert!(AresModule::callback(Origin::signed(3), 0, 10).is_err());
+		assert!(AresModule::feed_result(Origin::signed(3), 0, 10).is_err());
 	});
 }
 
 #[test]
 pub fn on_finalize() {
 	new_test_ext().execute_with(|| {
-		assert!(AresModule::register_operator(Origin::signed(1)).is_ok());
+		assert!(AresModule::register_aggregator(Origin::signed(1)).is_ok());
 		assert!(AresModule::initiate_request(Origin::signed(1), 1, vec![], 1, vec![]).is_ok());
 		// Request has been killed, too old
-		assert!(AresModule::callback(Origin::signed(1), 0, 10).is_ok());
+		assert!(AresModule::feed_result(Origin::signed(1), 0, 10).is_ok());
 	});
 }

@@ -16,7 +16,7 @@ function Main (props) {
   // The currently stored value
   const [registered, setRegistered] = useState(false);
 
-  // The Ares Operators
+  // The Ares Aggregators
   const [operatorAddress, setOperatorAddress] = useState('');
 
   // price
@@ -35,7 +35,7 @@ function Main (props) {
     setOperatorAddress(accountPair.address);
     console.log(operatorAddress);
 
-    api.query.aresModule.operators(accountPair.address, newValue => {
+    api.query.aresModule.aggregators(accountPair.address, newValue => {
       console.log(newValue);
       setRegistered(newValue);
     }).then(unsub => {
@@ -83,7 +83,7 @@ function Main (props) {
             setStatus={setStatus}
             attrs={{
               palletRpc: 'aresModule',
-              callable: 'registerOperator',
+              callable: 'registerAggregator',
               inputParams: [],
               paramFields: []
             }}
@@ -95,7 +95,7 @@ function Main (props) {
             setStatus={setStatus}
             attrs={{
               palletRpc: 'aresModule',
-              callable: 'unregisterOperator',
+              callable: 'unregisterAggregator',
               inputParams: [],
               paramFields: []
             }}
@@ -168,6 +168,6 @@ function Main (props) {
 
 export default function AresModule (props) {
   const { api } = useSubstrate();
-  return (api.query.aresModule && api.query.aresModule.operators
+  return (api.query.aresModule && api.query.aresModule.aggregators
     ? <Main {...props} /> : null);
 }
