@@ -30,3 +30,30 @@ http://141.164.45.97:8080/ares/api/getPartyPrice/btcusdt
 ```
 {"msg":"success","code":0,"data":{"market":null,"symbol":"btcusdt","price":18319.72,"nodes":null,"sn":null,"systs":1607528442761,"ts":1607528442761}}
 ```
+
+## Build
+
+### Start Node
+Enter `substrate-node-template`
+```
+make build
+```
+then start
+```
+./target/release/node-template --dev --tmp
+```
+
+### Start Front
+Enter `substrate-front-end-template`
+run
+```
+yarn start
+```
+
+### Start Aggregator
+Enter `fetch-data` run
+```
+npm index.js
+```
+
+you can use `Start Front` send `register`, `unregister`,`initial_request`,`feed_data` action with `node-template`
