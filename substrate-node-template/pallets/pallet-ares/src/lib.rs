@@ -37,7 +37,7 @@ decl_storage! {
 	// This name may be updated, but each pallet in the runtime must use a unique name.
 	trait Store for Module<T: Trait> as AresModule {
 		// A set of all registered Aggregator
-		pub Aggregators get(fn aggregator): map hasher(blake2_128_concat) T::AccountId => bool;
+		pub Aggregators get(fn aggregator): map hasher(blake2_128_concat) T::AccountId => (T::AccountId, T::BlockNumber, Vec<u8>);
 
 		// A running counter used internally to identify the next request
 		pub NextRequestId get(fn request_id): u64;
@@ -98,12 +98,14 @@ decl_module! {
 		// Register a new Aggregator.
 		// Fails with `AggregatorAlreadyRegistered` if this Aggregator (identified by `origin`) has already been registered.
 		#[weight = 10_000]
-		pub fn register_aggregator(origin) -> dispatch::DispatchResult {
+		pub fn register_aggregator(origin, source: Vec<u8>) -> dispatch::DispatchResult {
 			let who : <T as frame_system::Trait>::AccountId = ensure_signed(origin)?;
 
 			ensure!(!<Aggregators<T>>::contains_key(who.clone()), Error::<T>::AggregatorAlreadyRegistered);
 
-			Aggregators::<T>::insert(&who, true);
+			let now = frame_system::Module::<T>::block_number();
+
+			Aggregators::<T>::insert(&who, (who.clone(), now, source));
 
 			Self::deposit_event(RawEvent::AggregatorRegistered(who));
 
@@ -115,7 +117,11 @@ decl_module! {
 		pub fn unregister_aggregator(origin) -> dispatch::DispatchResult {
 			let who : <T as frame_system::Trait>::AccountId = ensure_signed(origin)?;
 
-			if Aggregators::<T>::take(who.clone()) {
+			ensure!(<Aggregators<T>>::contains_key(who.clone()), Error::<T>::UnknownAggregator);
+
+			let (aggregator, _, _) = <Aggregators<T>>::take(who.clone());
+
+			if who == aggregator {
 				Self::deposit_event(RawEvent::AggregatorUnregistered(who));
 				Ok(())
 			} else {
@@ -123,6 +129,8 @@ decl_module! {
 			}
 		}
 
+		// Identify oracle request from outside
+		// spec_index mark btc or eth price
 		#[weight = 10_000]
 		pub fn initiate_request(origin, aggregator: T::AccountId, spec_index: SpecIndex, data_version: DataVersion, data: Vec<u8>) -> dispatch::DispatchResult {
 			let who : <T as frame_system::Trait>::AccountId = ensure_signed(origin.clone())?;
@@ -140,6 +148,7 @@ decl_module! {
 			Ok(())
 		}
 
+		// when aggregator get price from outside will callback token price
 		#[weight = 10_000]
         fn feed_result(origin, request_id: u64, result: u64) -> dispatch::DispatchResult {
 			//let _who = ensure_signed(origin)?;
