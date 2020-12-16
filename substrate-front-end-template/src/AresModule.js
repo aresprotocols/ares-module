@@ -84,8 +84,8 @@ function Main (props) {
             attrs={{
               palletRpc: 'aresModule',
               callable: 'registerAggregator',
-              inputParams: [],
-              paramFields: []
+              inputParams: ['ok,huobi'],
+              paramFields: [true]
             }}
           />
           <TxButton
