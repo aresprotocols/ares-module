@@ -37,7 +37,7 @@ decl_storage! {
 	// This name may be updated, but each pallet in the runtime must use a unique name.
 	trait Store for Module<T: Trait> as AresModule {
 		// A set of all registered Aggregator
-		pub Aggregators get(fn aggregator): map hasher(blake2_128_concat) T::AccountId => (T::AccountId, T::BlockNumber, Vec<u8>);
+		pub Aggregators get(fn aggregator): map hasher(blake2_128_concat) T::AccountId => (T::AccountId, T::BlockNumber, Vec<u8>, Vec<u8>);
 
 		// A running counter used internally to identify the next request
 		pub NextRequestId get(fn request_id): u64;
@@ -98,14 +98,14 @@ decl_module! {
 		// Register a new Aggregator.
 		// Fails with `AggregatorAlreadyRegistered` if this Aggregator (identified by `origin`) has already been registered.
 		#[weight = 10_000]
-		pub fn register_aggregator(origin, source: Vec<u8>) -> dispatch::DispatchResult {
+		pub fn register_aggregator(origin, source: Vec<u8>, alias: Vec<u8>) -> dispatch::DispatchResult {
 			let who : <T as frame_system::Trait>::AccountId = ensure_signed(origin)?;
 
 			ensure!(!<Aggregators<T>>::contains_key(who.clone()), Error::<T>::AggregatorAlreadyRegistered);
 
 			let now = frame_system::Module::<T>::block_number();
 
-			Aggregators::<T>::insert(&who, (who.clone(), now, source));
+			Aggregators::<T>::insert(&who, (who.clone(), now, source, alias));
 
 			Self::deposit_event(RawEvent::AggregatorRegistered(who));
 
@@ -119,7 +119,7 @@ decl_module! {
 
 			ensure!(<Aggregators<T>>::contains_key(who.clone()), Error::<T>::UnknownAggregator);
 
-			let (aggregator, _, _) = <Aggregators<T>>::take(who.clone());
+			let (aggregator, _, _, _) = <Aggregators<T>>::take(who.clone());
 
 			if who == aggregator {
 				Self::deposit_event(RawEvent::AggregatorUnregistered(who));

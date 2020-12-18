@@ -37,7 +37,7 @@ function Main (props) {
 
     api.query.aresModule.aggregators(accountPair.address, newValue => {
       console.log(newValue);
-      setRegistered(newValue);
+      setRegistered(newValue.toHuman()[1] > 0);
     }).then(unsub => {
       unsubscribe = unsub;
     })
