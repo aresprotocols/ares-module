@@ -1,5 +1,6 @@
 const { ApiPromise, Keyring, WsProvider } = require('@polkadot/api');
 const { cryptoWaitReady }  = require('@polkadot/util-crypto');
+const { hexToBn, u8aToBuffer, bufferToU8a } = require('@polkadot/util')
 
 const PHRASE = 'entire material egg meadow latin bargain dutch coral blood melt acoustic thought';
 
@@ -27,8 +28,10 @@ async function registerAggregatorIfNeeded(api, aggregatorAccount) {
     const operator = await api.query.aresModule.aggregators(aggregatorAccount.address);
       console.log('Operator funded',operator[0].toHuman()," ",operator.toHuman()[1]," ",operator.toJSON()[2]," ",aggregatorAccount.address);
       if(operator.toHuman()[1] === 0) {
-        await api.tx.aresModule.registerAggregator("ok,huobi","alice").signAndSend(aggregatorAccount, async ({ status }) => {
-          if (status.isFinalized) {
+         // const result = await api.createType('Source', 'ok');
+          await api.tx.aresModule.registerAggregator('result','result').signAndSend(aggregatorAccount, async ({ status }) => {
+            console.log('Operator registered',status);
+            if (status.isFinalized) {
             console.log('Operator registered');
             resolve();
           }
@@ -82,10 +85,12 @@ async function main() {
         provider: wsProvider,
         types: {
             SpecIndex: "Vec<u8>",
+            Source: "Vec<u8>",
+            Alias: "Vec<u8>",
             DataVersion: "u64"
         }
     });
-    
+
     const Bytes2HexString =(arr)=> {
       for(j = 0; j < arr.length; j++) {
         if(arr[j].indexOf("SpecIndex")>-1)

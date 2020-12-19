@@ -30,6 +30,10 @@ pub type SpecIndex = Vec<u8>;
 // The version of the serialized data format
 pub type DataVersion = u64;
 
+pub type Source = Vec<u8>;
+
+pub type Alias = Vec<u8>;
+
 // The pallet's runtime storage items.
 // https://substrate.dev/docs/en/knowledgebase/runtime/storage
 decl_storage! {
@@ -37,7 +41,7 @@ decl_storage! {
 	// This name may be updated, but each pallet in the runtime must use a unique name.
 	trait Store for Module<T: Trait> as AresModule {
 		// A set of all registered Aggregator
-		pub Aggregators get(fn aggregator): map hasher(blake2_128_concat) T::AccountId => (T::AccountId, T::BlockNumber, Vec<u8>, Vec<u8>);
+		pub Aggregators get(fn aggregator): map hasher(blake2_128_concat) T::AccountId => (T::AccountId, T::BlockNumber, Source, Alias);
 
 		// A running counter used internally to identify the next request
 		pub NextRequestId get(fn request_id): u64;
@@ -98,7 +102,7 @@ decl_module! {
 		// Register a new Aggregator.
 		// Fails with `AggregatorAlreadyRegistered` if this Aggregator (identified by `origin`) has already been registered.
 		#[weight = 10_000]
-		pub fn register_aggregator(origin, source: Vec<u8>, alias: Vec<u8>) -> dispatch::DispatchResult {
+		pub fn register_aggregator(origin, source: Source, alias: Alias) -> dispatch::DispatchResult {
 			let who : <T as frame_system::Trait>::AccountId = ensure_signed(origin)?;
 
 			ensure!(!<Aggregators<T>>::contains_key(who.clone()), Error::<T>::AggregatorAlreadyRegistered);

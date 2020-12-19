@@ -13,7 +13,7 @@ fn request_no_register() {
 #[test]
 fn aggregators_can_be_registered() {
 	new_test_ext().execute_with(|| {
-		assert!(AresModule::register_aggregator(Origin::signed(1),"btc/eth".into()).is_ok());
+		assert!(AresModule::register_aggregator(Origin::signed(1),"btc/eth".into(),"alice".into()).is_ok());
 		assert!(AresModule::unregister_aggregator(Origin::signed(1)).is_ok());
 	});
 
@@ -26,7 +26,7 @@ fn aggregators_can_be_registered() {
 #[test]
 fn unknown_operator() {
 	new_test_ext().execute_with(|| {
-		assert!(AresModule::register_aggregator(Origin::signed(1),"btc/eth".into()).is_ok());
+		assert!(AresModule::register_aggregator(Origin::signed(1),"btc/eth".into(),"alice".into()).is_ok(),);
 		assert!(<Aggregators<Test>>::contains_key(1));
 		assert!(AresModule::initiate_request(Origin::signed(1), 2, vec![], 1, vec![]).is_err());
 	});
@@ -42,7 +42,7 @@ fn operator_no_register() {
 #[test]
 fn callback_not_match_operator() {
 	new_test_ext().execute_with(|| {
-		assert!(AresModule::register_aggregator(Origin::signed(1),"btc/eth".into()).is_ok());
+		assert!(AresModule::register_aggregator(Origin::signed(1),"btc/eth".into(),"alice".into()).is_ok());
 		assert!(AresModule::initiate_request(Origin::signed(2), 1, vec![], 1, vec![]).is_ok());
 		assert!(AresModule::feed_result(Origin::signed(3), 0, 10).is_err());
 	});
@@ -51,7 +51,7 @@ fn callback_not_match_operator() {
 #[test]
 pub fn on_finalize() {
 	new_test_ext().execute_with(|| {
-		assert!(AresModule::register_aggregator(Origin::signed(1),"btc/eth".into()).is_ok());
+		assert!(AresModule::register_aggregator(Origin::signed(1),"btc/eth".into(),"alice".into()).is_ok());
 		assert!(AresModule::initiate_request(Origin::signed(1), 1, vec![], 1, vec![]).is_ok());
 		// Request has been killed, too old
 		assert!(AresModule::feed_result(Origin::signed(1), 0, 10).is_ok());
