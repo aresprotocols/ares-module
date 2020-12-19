@@ -33,18 +33,17 @@ function Main (props) {
       return;
     }
     setOperatorAddress(accountPair.address);
-    console.log(operatorAddress);
+    console.log('operator: ' + operatorAddress);
 
     api.query.aresModule.aggregators(accountPair.address, newValue => {
-      console.log(newValue);
-      setRegistered(newValue.toHuman()[1] > 0);
+      setRegistered(newValue.toJSON()[1] > 0);
     }).then(unsub => {
       unsubscribe = unsub;
     })
       .catch(console.error);
 
     return () => unsubscribe && unsubscribe();
-  }, [accountPair, api.query.aresModule, operatorAddress]);
+  }, [accountPair, api.query.aresModule, api.query.aresModule.aggregators, operatorAddress]);
 
   useEffect(() => {
     let unsubscribe;
@@ -110,7 +109,7 @@ function Main (props) {
             attrs={{
               palletRpc: 'aresModule',
               callable: 'initiateRequest',
-              inputParams: [config.OPERATOR_ADDRESS, 'btcusdt', '1', '0'],
+              inputParams: [config.AGGREGATOR_ADDRESS, 'btcusdt', '1', '0'],
               paramFields: [true, true, true, true]
             }}
           />
@@ -122,7 +121,7 @@ function Main (props) {
             attrs={{
               palletRpc: 'aresModule',
               callable: 'initiateRequest',
-              inputParams: [config.OPERATOR_ADDRESS, 'ethusdt', '1', '0'],
+              inputParams: [config.AGGREGATOR_ADDRESS, 'ethusdt', '1', '0'],
               paramFields: [true, true, true, true]
             }}
           />
@@ -134,7 +133,7 @@ function Main (props) {
             attrs={{
               palletRpc: 'aresModule',
               callable: 'initiateRequest',
-              inputParams: [config.OPERATOR_ADDRESS, 'dotusdt', '1', '0'],
+              inputParams: [config.AGGREGATOR_ADDRESS, 'dotusdt', '1', '0'],
               paramFields: [true, true, true, true]
             }}
           />

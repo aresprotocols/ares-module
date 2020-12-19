@@ -3,6 +3,8 @@
     "Address": "AccountId",
     "LookupSource": "AccountId",
     "SpecIndex": "Vec<u8>",
+    "Source": "Vec<u8>",
+    "Alias": "Vec<u8>",
     "RequestIdentifier": "u64",
     "DataVersion": "u64"
   },

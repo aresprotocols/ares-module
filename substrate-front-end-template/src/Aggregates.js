@@ -1,56 +1,52 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Grid, Button } from 'semantic-ui-react';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { Table, Grid } from 'semantic-ui-react';
 import { useSubstrate } from './substrate-lib';
 
 export default function Main (props) {
-  const { api, keyring } = useSubstrate();
-  const accounts = keyring.getPairs();
-  const [balances, setBalances] = useState({});
+  const { api } = useSubstrate();
+  const [aggregatorMap, setAggregatorMap] = useState(new Map());
 
   useEffect(() => {
-    const addresses = keyring.getPairs().map(account => account.address);
-    let unsubscribeAll = null;
+    let unsubscribe;
 
-    api.query.system.account
-      .multi(addresses, balances => {
-        const balancesMap = addresses.reduce((acc, address, index) => ({
-          ...acc, [address]: balances[index].data.free.toHuman()
-        }), {});
-        setBalances(balancesMap);
-      }).then(unsub => {
-        unsubscribeAll = unsub;
-      }).catch(console.error);
+    api.query.aresModule.aggregators.entries(allEntries => {
+      for (var [key, value] of allEntries) {
+        setAggregatorMap(new Map(aggregatorMap.set(key, value)));
+      }
+      // for (var [key, value] of aggregatorMap) {
+      //   console.log(key + ' = ' + value);
+      // }
+    }).then(unsub => {
+      unsubscribe = unsub;
+    })
+      .catch(console.error);
 
-    return () => unsubscribeAll && unsubscribeAll();
-  }, [api, keyring, setBalances]);
+    return () => unsubscribe && unsubscribe();
+  }, [api.query.aresModule.aggregators]);
 
   return (
     <Grid.Column>
-      <h1>Aggregators</h1>
+      <h1>Aggregates</h1>
       <Table celled striped size='small'>
-        <Table.Body>{accounts.map(account =>
-          <Table.Row key={account.address}>
-            <Table.Cell width={3} textAlign='right'>{account.meta.name}</Table.Cell>
+        <Table.Header>
+          <Table.Row>
+            <Table.HeaderCell>Block Number</Table.HeaderCell>
+            <Table.HeaderCell>Address</Table.HeaderCell>
+            <Table.HeaderCell>NickName</Table.HeaderCell>
+            <Table.HeaderCell>Source</Table.HeaderCell>
+          </Table.Row>
+        </Table.Header>
+
+        <Table.Body>{[...aggregatorMap.keys()].map(k =>
+          <Table.Row key={k}>
+            <Table.Cell width={3} textAlign='right'>{aggregatorMap.get(k).toHuman()[1]}</Table.Cell>
             <Table.Cell width={10}>
               <span style={{ display: 'inline-block', minWidth: '31em' }}>
-                {account.address}
+                {aggregatorMap.get(k).toHuman()[0]}
               </span>
-              <CopyToClipboard text={account.address}>
-                <Button
-                  basic
-                  circular
-                  compact
-                  size='mini'
-                  color='blue'
-                  icon='copy outline'
-                />
-              </CopyToClipboard>
             </Table.Cell>
-            <Table.Cell width={3}>{
-              balances && balances[account.address] &&
-              balances[account.address]
-            }</Table.Cell>
+            <Table.Cell width={3} textAlign='right'>{aggregatorMap.get(k).toHuman()[3]}</Table.Cell>
+            <Table.Cell width={3} textAlign='right'>{aggregatorMap.get(k).toHuman()[2]}</Table.Cell>
           </Table.Row>
         )}
         </Table.Body>

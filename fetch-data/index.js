@@ -27,7 +27,7 @@ async function registerAggregatorIfNeeded(api, aggregatorAccount) {
   return new Promise(async (resolve) => {
     const operator = await api.query.aresModule.aggregators(aggregatorAccount.address);
       console.log('Operator funded',operator[0].toHuman()," ",operator.toHuman()[1]," ",operator.toJSON()[2]," ",aggregatorAccount.address);
-      if(operator.toHuman()[1] === 0) {
+      if(operator.toJSON()[1] === 0) {
          // const result = await api.createType('Source', 'ok');
           await api.tx.aresModule.registerAggregator('result','result').signAndSend(aggregatorAccount, async ({ status }) => {
             console.log('Operator registered',status);

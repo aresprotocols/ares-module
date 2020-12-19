@@ -1,6 +1,6 @@
 {
   "APP_NAME": "substrate-front-end-tutorial",
   "DEVELOPMENT_KEYRING": true,
-  "OPERATOR_ADDRESS":"5GRdmMkKeKaV94qU3JjDr2ZwRAgn3xwzd2FEJYKjjSFipiAe",
+  "AGGREGATOR_ADDRESS":"5GRdmMkKeKaV94qU3JjDr2ZwRAgn3xwzd2FEJYKjjSFipiAe",
   "RPC": {}
 }
