@@ -18,6 +18,7 @@ use sp_runtime::offchain::storage::StorageValueRef;
 use sp_runtime::offchain::http;
 use sp_runtime::offchain::Duration;
 use lite_json::json::JsonValue;
+use sp_runtime::traits::Zero;
 
 #[cfg(test)]
 mod mock;
@@ -192,6 +193,8 @@ decl_module! {
 		}
 
     fn offchain_worker(block_number: T::BlockNumber) {
+    	let start_type = block_number % 3u32.into();
+		if start_type == Zero::zero() {
 			// It's a good idea to add logs to your offchain workers.
 			// Using the `frame_support::debug` module you have access to the same API exposed by
 			// the `log` crate.
@@ -226,6 +229,7 @@ decl_module! {
 			if let Err(e) = res {
 				debug::error!("Error: {}", e);
 			}
+		}
     }
 	}
 }
@@ -295,7 +299,7 @@ impl<T: Trait> Module<T> {
                 // transactions in a row. If a strict order is desired, it's better to use
                 // the storage entry for that. (for instance store both block number and a flag
                 // indicating the type of next transaction to send).
-                let transaction_type = block_number % 3u32.into();
+                let _transaction_type = block_number % 3u32.into();
                      TransactionType::Signed
             },
             // We are in the grace period, we should not send a transaction this time.
