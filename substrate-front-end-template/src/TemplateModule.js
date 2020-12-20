@@ -36,7 +36,7 @@ function Main (props) {
 
   return (
     <Grid.Column width={8}>
-      <h1>Template Module</h1>
+      <h1>OCW Module</h1>
       <Card centered>
         <Card.Content textAlign='center'>
           <Statistic
