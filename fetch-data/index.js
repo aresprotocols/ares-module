@@ -29,7 +29,7 @@ async function registerAggregatorIfNeeded(api, aggregatorAccount) {
       console.log('Operator funded',operator[0].toHuman()," ",operator.toHuman()[1]," ",operator.toJSON()[2]," ",aggregatorAccount.address);
       if(operator.toJSON()[1] === 0) {
          // const result = await api.createType('Source', 'ok');
-          await api.tx.aresModule.registerAggregator('result','result').signAndSend(aggregatorAccount, async ({ status }) => {
+          await api.tx.aresModule.registerAggregator('ok,huobi','jack').signAndSend(aggregatorAccount, async ({ status }) => {
             console.log('Operator registered',status);
             if (status.isFinalized) {
             console.log('Operator registered');

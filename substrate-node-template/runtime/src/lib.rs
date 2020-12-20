@@ -345,6 +345,11 @@ parameter_types! {
 	pub const ValidityPeriod: u32 = 50;
 }
 
+parameter_types! {
+	pub const GracePeriod: BlockNumber = 5;
+	pub const UnsignedInterval: u64 = 128;
+	pub const UnsignedPriority: u64 = 1 << 20;
+}
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
