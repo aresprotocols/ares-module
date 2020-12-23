@@ -91,9 +91,9 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 	if let Some(seed) = dev_seed {
 		keystore
 			.write()
-			.insert_ephemeral_from_seed_by_type::<node_template_runtime::pallet_template::crypto::Pair>(
+			.insert_ephemeral_from_seed_by_type::<node_template_runtime::pallet_ocw::crypto::Pair>(
 				&seed,
-				node_template_runtime::pallet_template::KEY_TYPE,
+				node_template_runtime::pallet_ocw::KEY_TYPE,
 			)
 			.expect("Dev Seed should always succeed.");
 	}

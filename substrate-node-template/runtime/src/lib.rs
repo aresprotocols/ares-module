@@ -42,6 +42,8 @@ pub use frame_support::{
 /// Import the template pallet.
 pub use pallet_template;
 
+pub use pallet_ocw;
+
 /// Import the ares pallet.
 pub use pallet_template::Call as AresCall;
 
@@ -276,11 +278,11 @@ impl pallet_ares::Trait for Runtime {
 pub type SignedPayload = generic::SignedPayload<Call, SignedExtra>;
 
 /// Configure the template pallet in pallets/template.
-impl pallet_template::Trait for Runtime {
+impl pallet_ocw::Trait for Runtime {
 	type Event = Event;
 	type Call = Call;
 
-	type AuthorityId = pallet_template::crypto::TestAuthId;
+	type AuthorityId = pallet_ocw::crypto::TestAuthId;
 
 	type GracePeriod = GracePeriod;
 }
@@ -351,6 +353,11 @@ parameter_types! {
 	pub const UnsignedPriority: u64 = 1 << 20;
 }
 
+/// Configure the pallet template in pallets/template.
+impl pallet_template::Trait for Runtime {
+	type Event = Event;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -369,6 +376,7 @@ construct_runtime!(
 		// Include the custom logic from the template pallet in the runtime.
 		// Declare the ares pallet
 		AresModule: pallet_ares::{Module, Call, Storage, Event<T>},
+		OCWModule: pallet_ocw::{Module, Call, Storage, Event<T>},
 		TemplateModule: pallet_template::{Module, Call, Storage, Event<T>},
 	}
 );
