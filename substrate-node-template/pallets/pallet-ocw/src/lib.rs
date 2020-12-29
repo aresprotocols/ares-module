@@ -13,7 +13,10 @@ use frame_system::offchain::{
 };
 use sp_core::crypto::KeyTypeId;
 use sp_runtime::RuntimeDebug;
-use sp_std::prelude::*;
+use sp_std::{
+    prelude::*,
+    collections::vec_deque::VecDeque,
+};
 use sp_runtime::offchain::storage::StorageValueRef;
 use sp_runtime::offchain::http;
 use sp_runtime::offchain::Duration;
@@ -59,6 +62,7 @@ impl<T: SigningTypes> SignedPayload<T> for PricePayload<T::Public, T::BlockNumbe
 
 // The key type ID can be any 4-character string
 pub const KEY_TYPE: KeyTypeId = KeyTypeId(*b"btc!");
+pub const NUM_VEC_LEN: usize = 20;
 
 pub mod crypto {
     use sp_core::sr25519::Signature as Sr25519Signature;
@@ -100,10 +104,10 @@ decl_storage! {
 		// Learn more about declaring storage items:
 		// https://substrate.dev/docs/en/knowledgebase/runtime/storage#declaring-storage-items
 		Something get(fn something): Option<u32>;
-		/// A vector of recently submitted prices.
+		/// A vector of recently submitted prices. Bounded by NUM_VEC_LEN
 		///
 		/// This is used to calculate average price, should have bounded size.
-		Prices get(fn prices): Vec<u32>;
+		Prices get(fn prices): VecDeque<u32>;
 		/// Defines the block when next unsigned transaction will be accepted.
 		///
 		/// To prevent spam of unsigned (and unpayed!) transactions on the network,
@@ -448,13 +452,11 @@ impl<T: Trait> Module<T> {
     fn add_price(who: T::AccountId, price: u32) {
         debug::info!("Adding to the average: {}", price);
         Prices::mutate(|prices| {
-            const MAX_LEN: usize = 64;
-
-            if prices.len() < MAX_LEN {
-                prices.push(price);
-            } else {
-                prices[price as usize % MAX_LEN] = price;
+            if prices.len() == NUM_VEC_LEN {
+                let _ = prices.pop_front();
             }
+            prices.push_back(price);
+            debug::info!("Number vector: {:?}", prices);
         });
 
         let average = Self::average_price()
