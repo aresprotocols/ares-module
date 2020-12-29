@@ -1,6 +1,8 @@
 # ares-module
 It's the pallets repo for Ares Protocol 
 
+[`Example Vedio`](https://www.google.com/sorry/index?continue=https://www.youtube.com/watch%3Fv%3DHlYhsHFKzJw&q=EgQvOaYCGIXIrP8FIhkA8aeDS0MbBewQM_cNNJgAufzC6Rm8niLWMgFy)
+
 ### substrate-node-template is substrate node
    *  `pallet-ares` deal aggregator register and unregister
    *  `pallet-ares` oracle request and result callback 
@@ -33,7 +35,7 @@ http://141.164.45.97:8080/ares/api/getPartyPrice/btcusdt
 
 ## Build
 
-### Start Node
+### 1. Start Node
 Enter `substrate-node-template`
 ```
 make build
@@ -43,14 +45,14 @@ then start
 ./target/release/node-template --dev --tmp
 ```
 
-### Start Front
+### 2. Start Front
 Enter `substrate-front-end-template`
 run
 ```
 yarn start
 ```
 
-### Start Aggregator
+### 3. Start Aggregator
 Enter `fetch-data` run
 ```
 npm index.js
