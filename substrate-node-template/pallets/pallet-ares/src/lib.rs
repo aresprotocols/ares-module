@@ -4,15 +4,21 @@
 /// Learn more about FRAME and the core library of Substrate FRAME pallets:
 /// https://substrate.dev/docs/en/knowledgebase/runtime/frame
 
-use frame_support::{decl_module, decl_storage, decl_event, decl_error, ensure,  dispatch, traits::Get};
+use frame_support::{decl_module, decl_storage, decl_event, decl_error, ensure,  dispatch, traits::Get, traits::Currency};
 use sp_std::prelude::*;
 use frame_system::ensure_signed;
+use sp_std::{
+	prelude::*,
+	collections::vec_deque::VecDeque,
+};
 
 #[cfg(test)]
 mod mock;
 
 #[cfg(test)]
 mod tests;
+
+type BalanceOf<T> = <<T as Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
 
 /// Configure the pallet by specifying the parameters and types on which it depends.
 pub trait Trait: frame_system::Trait {
@@ -21,18 +27,41 @@ pub trait Trait: frame_system::Trait {
 
 	// Period during which a request is valid
 	type ValidityPeriod: Get<Self::BlockNumber>;
+
+	type Currency: Currency<Self::AccountId>;
 }
 
-// Uniquely identify a request's specification understood by an Aggregator
-pub type SpecIndex = Vec<u8>;
-// Uniquely identify a request for a considered Aggregator
-//pub type RequestIdentifier = u64;
-// The version of the serialized data format
-pub type DataVersion = u64;
+/// Aggregator which is desc info.
+#[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug)]
+pub struct Aggregator<AccountId, BlockNumber, BalanceOf>
+	where BlockNumber: PartialEq + Eq + Decode + Encode,
+{
+	pub account_id: AccountId,
+	/// Block number at the time register is created..
+	pub block_number: BlockNumber,
+	/// exchange source
+	pub source: Vec<u8>,
+	/// alias name
+	pub alias: Vec<u8>,
+	/// api url.
+	pub url: Vec<u8>,
 
-pub type Source = Vec<u8>;
+	pub value: BalanceOf,
+}
 
-pub type Alias = Vec<u8>;
+/// Requests which is quest info.
+#[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug)]
+pub struct Request<AccountId, BlockNumber, Hash>
+	where BlockNumber: PartialEq + Eq + Decode + Encode,
+{
+	pub aggregator_id: AccountId,
+	/// Block number at the time request is created..
+	pub block_number: BlockNumber,
+	/// exchange source
+	pub token: Vec<u8>,
+	/// chain work id
+	pub work_id: Hash,
+}
 
 // The pallet's runtime storage items.
 // https://substrate.dev/docs/en/knowledgebase/runtime/storage
@@ -41,24 +70,24 @@ decl_storage! {
 	// This name may be updated, but each pallet in the runtime must use a unique name.
 	trait Store for Module<T: Trait> as AresModule {
 		// A set of all registered Aggregator
-		pub Aggregators get(fn aggregator): map hasher(blake2_128_concat) T::AccountId => (T::AccountId, T::BlockNumber, Source, Alias);
+		pub Aggregators get(fn aggregator): map hasher(blake2_128_concat) T::AccountId => Aggregator;
 
 		// A running counter used internally to identify the next request
-		pub NextRequestId get(fn request_id): u64;
+		pub NextRequestId get(fn request_id): T::Hash;
 
 		// A map of details of each running request
-		pub Requests get(fn request): map hasher(blake2_128_concat) u64 => (T::AccountId, T::BlockNumber, SpecIndex);
+		pub Requests get(fn request): map hasher(blake2_128_concat) u64 => Request;
 
-		pub OracleResults get(fn oracle_results): map hasher(blake2_128_concat) SpecIndex => u64;
+		pub OracleResults get(fn oracle_results): map hasher(blake2_128_concat) Vec<u8> => VecDeque<u64>;
 	}
 }
 
 // Pallets use events to inform users when important changes are made.
 // https://substrate.dev/docs/en/knowledgebase/runtime/events
 decl_event!(
-	pub enum Event<T> where AccountId = <T as frame_system::Trait>::AccountId {
+	pub enum Event<T> where Balance = BalanceOf<T>, AccountId = <T as frame_system::Trait>::AccountId {
 		// A request has been accepted.
-		OracleRequest(AccountId, SpecIndex, u64, AccountId, DataVersion, Vec<u8>, Vec<u8>),
+		OracleRequest(AccountId, Vec<u8>, u64, AccountId, Vec<u8>, Vec<u8>),
 
 		// A request has been answered.
 		OracleResult(AccountId, u64, AccountId, u64),
@@ -102,7 +131,7 @@ decl_module! {
 		// Register a new Aggregator.
 		// Fails with `AggregatorAlreadyRegistered` if this Aggregator (identified by `origin`) has already been registered.
 		#[weight = 10_000]
-		pub fn register_aggregator(origin, source: Source, alias: Alias) -> dispatch::DispatchResult {
+		pub fn register_aggregator(origin, source: Vec<u8>, alias: Vec<u8>, value: BalanceOf<T>) -> dispatch::DispatchResult {
 			let who : <T as frame_system::Trait>::AccountId = ensure_signed(origin)?;
 
 			ensure!(!<Aggregators<T>>::contains_key(who.clone()), Error::<T>::AggregatorAlreadyRegistered);
@@ -140,6 +169,12 @@ decl_module! {
 			let who : <T as frame_system::Trait>::AccountId = ensure_signed(origin.clone())?;
 
 			ensure!(<Aggregators<T>>::contains_key(aggregator.clone()), Error::<T>::UnknownAggregator);
+
+			// Currently, one origin can only offload one computation per block. We should probably
+			// include some nonce in the hash so this limitation is lifted.
+
+			let random_hash = (<system::Module<T>>::random_seed(), &who, <system::Module<T>>::block_number())
+				.using_encoded(T::Hashing::hash);
 
 			let request_id = NextRequestId::get();
 			NextRequestId::put(request_id + 1);
