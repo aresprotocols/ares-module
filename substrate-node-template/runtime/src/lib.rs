@@ -271,6 +271,8 @@ impl pallet_sudo::Trait for Runtime {
 impl pallet_ares::Trait for Runtime {
 	type Event = Event;
 	type ValidityPeriod = ValidityPeriod;
+	type AggregateQueueNum = AggregateQueueNum;
+	type AggregateInterval = AggregateInterval;
 }
 
 /// Payload data to be signed when making signed transaction from off-chain workers,
@@ -345,6 +347,8 @@ impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime
 
 parameter_types! {
 	pub const ValidityPeriod: u32 = 50;
+	pub const AggregateQueueNum: u32 = 10;
+	pub const AggregateInterval: BlockNumber = 15;
 }
 
 parameter_types! {

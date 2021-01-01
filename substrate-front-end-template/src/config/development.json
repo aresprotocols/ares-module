@@ -2,11 +2,24 @@
   "CUSTOM_TYPES": {
     "Address": "AccountId",
     "LookupSource": "AccountId",
-    "SpecIndex": "Vec<u8>",
-    "Source": "Vec<u8>",
-    "Alias": "Vec<u8>",
-    "RequestIdentifier": "u64",
-    "DataVersion": "u64"
+    "TokenSpec": "Vec<u8>",
+    "Aggregator": {
+      "account_id": "AccountId",
+      "block_number": "BlockNumber",
+      "source": "Vec<u8>",
+      "alias": "Vec<u8>",
+      "url": "Vec<u8>"
+    },
+    "Request": {
+      "aggregator_id": "AccountId",
+      "block_number": "BlockNumber",
+      "token": "Vec<u8>",
+      "work_id": "Hash"
+    },
+    "AggregateResult": {
+      "block_number": "BlockNumber",
+      "price": "u64"
+    }
   },
   "PROVIDER_SOCKET": "ws://127.0.0.1:9944"
 }

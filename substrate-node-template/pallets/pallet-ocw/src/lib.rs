@@ -11,16 +11,16 @@ use frame_system::offchain::{
     AppCrypto, CreateSignedTransaction, SendSignedTransaction,
     SignedPayload, Signer, SigningTypes,
 };
+use lite_json::json::JsonValue;
 use sp_core::crypto::KeyTypeId;
+use sp_runtime::offchain::Duration;
+use sp_runtime::offchain::http;
+use sp_runtime::offchain::storage::StorageValueRef;
 use sp_runtime::RuntimeDebug;
 use sp_std::{
-    prelude::*,
     collections::vec_deque::VecDeque,
+    prelude::*,
 };
-use sp_runtime::offchain::storage::StorageValueRef;
-use sp_runtime::offchain::http;
-use sp_runtime::offchain::Duration;
-use lite_json::json::JsonValue;
 
 #[cfg(test)]
 mod mock;
@@ -186,7 +186,7 @@ decl_module! {
 			}
 		}
 
-		#[weight = 0]
+		#[weight = 10_000]
 		pub fn submit_price(origin, price: u32) -> dispatch::DispatchResult {
 			// Retrieve sender of the transaction.
 			let who = ensure_signed(origin)?;
@@ -196,7 +196,7 @@ decl_module! {
 		}
 
     fn offchain_worker(block_number: T::BlockNumber) {
-    	let start_type = block_number % 3u32.into();
+    	let start_type = block_number % 5u32.into();
 		if start_type == T::BlockNumber::from(1u32) {
 			// It's a good idea to add logs to your offchain workers.
 			// Using the `frame_support::debug` module you have access to the same API exposed by
@@ -467,12 +467,21 @@ impl<T: Trait> Module<T> {
     }
 
     /// Calculate current average price.
+    /// sort price and remove start , end value
     fn average_price() -> Option<u32> {
         let prices = Prices::get();
         if prices.is_empty() {
             None
-        } else {
+        } else if prices.len() <= 2 {
             Some(prices.iter().fold(0_u32, |a, b| a.saturating_add(*b)) / prices.len() as u32)
+        } else {
+            let mut prices_ap :Vec<u32> = prices.into_iter().clone().collect();
+
+            prices_ap.sort();
+            prices_ap.truncate(prices_ap.len() - 1);
+            let rest: Vec<u32> = prices_ap.drain(1..).collect();
+
+            Some(rest.iter().fold(0_u32, |a, b| a.saturating_add(*b)) / rest.len() as u32)
         }
     }
 

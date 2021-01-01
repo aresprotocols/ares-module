@@ -52,11 +52,15 @@ impl system::Trait for Test {
 
 parameter_types! {
 	pub const ValidityPeriod: u64 = 10;
+	pub const AggregateQueueNum: u32 = 10;
+	pub const AggregateInterval: BlockNumber = 15;
 }
 
 impl Trait for Test {
     type Event = ();
     type ValidityPeriod = ValidityPeriod;
+    type AggregateQueueNum = AggregateQueueNum;
+    type AggregateInterval = AggregateInterval;
 }
 
 pub type AresModule = Module<Test>;
