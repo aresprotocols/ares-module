@@ -36,7 +36,7 @@ function Main (props) {
     console.log('operator: ' + operatorAddress);
 
     api.query.aresModule.aggregators(accountPair.address, newValue => {
-      setRegistered(newValue.toJSON()[1] > 0);
+      setRegistered(newValue.block_number > 0);
     }).then(unsub => {
       unsubscribe = unsub;
     })
@@ -51,9 +51,9 @@ function Main (props) {
     api.query.aresModule.oracleResults.multi(['btcusdt', 'ethusdt', 'dotusdt'], newValues => {
       console.log(newValues);
       const [btcprice, ethprice, dotprice] = newValues;
-      setBtcPrice(parseInt(btcprice) / 1000);
-      setEthPrice(parseInt(ethprice) / 1000);
-      setDotPrice(parseInt(dotprice) / 1000);
+      setBtcPrice(parseInt(btcprice[btcprice.length - 1]) / 1000);
+      setEthPrice(parseInt(ethprice[ethprice.length - 1]) / 1000);
+      setDotPrice(parseInt(dotprice[dotprice.length - 1]) / 1000);
     }).then(unsub => {
       unsubscribe = unsub;
     })
@@ -83,8 +83,8 @@ function Main (props) {
             attrs={{
               palletRpc: 'aresModule',
               callable: 'registerAggregator',
-              inputParams: ['ok,huobi', 'ares'],
-              paramFields: [true, true]
+              inputParams: ['ok,huobi', 'bob', 'http://141.164.45.97:8080/ares/api'],
+              paramFields: [true, true, true]
             }}
           />
           <TxButton
@@ -109,8 +109,8 @@ function Main (props) {
             attrs={{
               palletRpc: 'aresModule',
               callable: 'initiateRequest',
-              inputParams: [config.AGGREGATOR_ADDRESS, 'btcusdt', '1', '0'],
-              paramFields: [true, true, true, true]
+              inputParams: [config.AGGREGATOR_ADDRESS, 'btcusdt', '0'],
+              paramFields: [true, true, true]
             }}
           />
           <TxButton
@@ -121,8 +121,8 @@ function Main (props) {
             attrs={{
               palletRpc: 'aresModule',
               callable: 'initiateRequest',
-              inputParams: [config.AGGREGATOR_ADDRESS, 'ethusdt', '1', '0'],
-              paramFields: [true, true, true, true]
+              inputParams: [config.AGGREGATOR_ADDRESS, 'ethusdt', '0'],
+              paramFields: [true, true, true]
             }}
           />
           <TxButton
@@ -133,8 +133,8 @@ function Main (props) {
             attrs={{
               palletRpc: 'aresModule',
               callable: 'initiateRequest',
-              inputParams: [config.AGGREGATOR_ADDRESS, 'dotusdt', '1', '0'],
-              paramFields: [true, true, true, true]
+              inputParams: [config.AGGREGATOR_ADDRESS, 'dotusdt', '0'],
+              paramFields: [true, true, true]
             }}
           />
         </Form.Field>

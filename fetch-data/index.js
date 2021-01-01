@@ -26,11 +26,10 @@ async function registerAggregatorIfNeeded(api, aggregatorAccount) {
   // Register the aggregator, this is supposed to be initiated once by the aggregator itself
   return new Promise(async (resolve) => {
     const operator = await api.query.aresModule.aggregators(aggregatorAccount.address);
-      console.log('Operator funded',operator[0].toHuman()," ",operator.toHuman()[1]," ",operator.toJSON()[2]," ",aggregatorAccount.address);
-      if(operator.toJSON()[1] === 0) {
-         // const result = await api.createType('Source', 'ok');
-          await api.tx.aresModule.registerAggregator('ok,huobi','jack').signAndSend(aggregatorAccount, async ({ status }) => {
-            console.log('Operator registered',status);
+      console.log('Operator register'," ",operator.toJSON()," ",aggregatorAccount.address);
+      if (operator.toJSON().block_number === 0) {
+          await api.tx.aresModule.registerAggregator('ok,huobi','jack', 'http://141.164.45.97:8080/ares/api').signAndSend(aggregatorAccount, async ({ status }) => {
+            console.log('Operator registered',status.isFinalized);
             if (status.isFinalized) {
             console.log('Operator registered');
             resolve();
@@ -84,16 +83,30 @@ async function main() {
     const api = await ApiPromise.create({
         provider: wsProvider,
         types: {
-            SpecIndex: "Vec<u8>",
-            Source: "Vec<u8>",
-            Alias: "Vec<u8>",
-            DataVersion: "u64"
+            "TokenSpec": "Vec<u8>",
+            "Aggregator": {
+                "account_id": "AccountId",
+                "block_number": "BlockNumber",
+                "source": "Vec<u8>",
+                "alias": "Vec<u8>",
+                "url": "Vec<u8>"
+            },
+            "Request": {
+                "aggregator_id": "AccountId",
+                "block_number": "BlockNumber",
+                "token": "Vec<u8>",
+                "work_id": "Hash"
+            },
+            "AggregateResult": {
+                "block_number": "BlockNumber",
+                "price": "u64"
+            }
         }
     });
 
     const Bytes2HexString =(arr)=> {
-      for(j = 0; j < arr.length; j++) {
-        if(arr[j].indexOf("SpecIndex")>-1)
+        for(j = 0; j < arr.length; j++) {
+        if(arr[j].indexOf("TokenSpec")>-1)
         {
           var str=arr[j].split(":")[1].trim()
 
@@ -155,8 +168,8 @@ async function main() {
                 // Respond to the request with a dummy result
                 api.tx.aresModule.feedResult(parseInt(id), result).signAndSend(aggregatorAccount, async ({ events = [], status }) => {
                     if (status.isFinalized) {
-                      const updatedResult = await api.query.aresModule.oracleResults(SpecIndex);
-                      console.log(`${SpecIndex} price is now ${updatedResult/1000}`);
+                        const updatedResult = await api.query.aresModule.oracleResults(SpecIndex);
+                        console.log(`${SpecIndex} price is now ${updatedResult[updatedResult.length -1]/1000}`);
                     }
                   });
                   console.log(data);
@@ -169,8 +182,8 @@ async function main() {
     await registerAggregatorIfNeeded(api, aggregatorAccount);
 
     // Then simulate a call from alice
-    await api.tx.aresModule.initiateRequest(aggregatorAccount.address, "btcusdt", "1", "").signAndSend(aliceAccount);
-    console.log(`Request sent`);
+    await api.tx.aresModule.initiateRequest(aggregatorAccount.address, "btcusdt", "1").signAndSend(aliceAccount);
+    console.log(`Alice send a request`);
 }
 
 main().catch(console.error)
