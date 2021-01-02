@@ -11,19 +11,16 @@ export default function Main (props) {
 
     api.query.aresModule.requests.entries(allEntries => {
       console.log(allEntries);
-
       for (var [key, value] of allEntries) {
         setRequestsMap(new Map(requestsMap.set(key, value)));
       }
-      // for (var [k, v] of requestsMap) {
-      //   console.log(k + ' = ' + v);
-      // }
     }).then(unsub => {
       unsubscribe = unsub;
     })
       .catch(console.error);
 
     return () => unsubscribe && unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [api.query.aresModule.requests]);
 
   return (
@@ -33,9 +30,10 @@ export default function Main (props) {
         <Table.Header>
           <Table.Row>
             {/* <Table.HeaderCell>ID</Table.HeaderCell> */}
-            <Table.HeaderCell>AccountId</Table.HeaderCell>
-            <Table.HeaderCell>BlockNumber</Table.HeaderCell>
-            <Table.HeaderCell>SpecIndex</Table.HeaderCell>
+            <Table.HeaderCell>Aggregator ID</Table.HeaderCell>
+            <Table.HeaderCell>Block Number</Table.HeaderCell>
+            <Table.HeaderCell>Token</Table.HeaderCell>
+            <Table.HeaderCell>Work ID</Table.HeaderCell>
           </Table.Row>
         </Table.Header>
 
@@ -44,11 +42,12 @@ export default function Main (props) {
             {/* <Table.Cell width={3} textAlign='right'>{k}</Table.Cell> */}
             <Table.Cell width={10}>
               <span style={{ display: 'inline-block', minWidth: '31em' }}>
-                {requestsMap.get(k).toHuman()[0]}
+                {requestsMap.get(k).aggregator_id.toHuman()}
               </span>
             </Table.Cell>
-            <Table.Cell width={3} textAlign='right'>{requestsMap.get(k).toHuman()[1]}</Table.Cell>
-            <Table.Cell width={3} textAlign='right'>{requestsMap.get(k).toHuman()[2]}</Table.Cell>
+            <Table.Cell width={3} textAlign='right'>{requestsMap.get(k).block_number.toHuman()}</Table.Cell>
+            <Table.Cell width={3} textAlign='right'>{requestsMap.get(k).token.toHuman()}</Table.Cell>
+            <Table.Cell width={3} textAlign='right'>{requestsMap.get(k).work_id.toHuman()}</Table.Cell>
           </Table.Row>
         )}
         </Table.Body>

@@ -13,11 +13,11 @@ export default function Main (props) {
     let unsubscribe;
 
     api.query.aresModule.oracleResults.multi(['btcusdt', 'ethusdt', 'dotusdt'], newValues => {
-      console.log(newValues);
+      // console.log(newValues);
       const [btcprice, ethprice, dotprice] = newValues;
-      setBtcPrice(parseInt(btcprice) / 1000);
-      setEthPrice(parseInt(ethprice) / 1000);
-      setDotPrice(parseInt(dotprice) / 1000);
+      setBtcPrice(parseInt(btcprice[btcprice.length - 1]) / 1000);
+      setEthPrice(parseInt(ethprice[ethprice.length - 1]) / 1000);
+      setDotPrice(parseInt(dotprice[dotprice.length - 1]) / 1000);
     }).then(unsub => {
       unsubscribe = unsub;
     })

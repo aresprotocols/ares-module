@@ -167,6 +167,6 @@ function Main (props) {
 
 export default function AresModule (props) {
   const { api } = useSubstrate();
-  return (api.query.aresModule && api.query.aresModule.aggregators
+  return (api.query.aresModule && api.query.aresModule.aggregators && api.query.aresModule.requests
     ? <Main {...props} /> : null);
 }

@@ -158,10 +158,12 @@ async function main() {
               //console.log(eventName);
 
               const id = event.data[2].toString();
+              console.log(id);
               var postData = null;
               var SpecIndex = Bytes2HexString(params)
               //get aggregator url and loading
-              var url =`http://141.164.45.97:8080/ares/api/getPartyPrice/${SpecIndex}/${id}`;
+              //var url =`http://141.164.45.97:8080/ares/api/getPartyPrice/${SpecIndex}/${id}`;
+              var url =`http://141.164.45.97:8080/ares/api/getPartyPrice/${SpecIndex}`;
               sentRes(url,postData,"GET",function(data) {
                 var price=JSON.parse(data).data.price * 1000;
                 const result = api.createType('i128', price).toHex();

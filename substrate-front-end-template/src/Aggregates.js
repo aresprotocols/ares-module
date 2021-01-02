@@ -13,9 +13,6 @@ export default function Main (props) {
       for (var [key, value] of allEntries) {
         setAggregatorMap(new Map(aggregatorMap.set(key, value)));
       }
-      // for (var [key, value] of aggregatorMap) {
-      //   console.log(key + ' = ' + value);
-      // }
     }).then(unsub => {
       unsubscribe = unsub;
     })
@@ -30,23 +27,25 @@ export default function Main (props) {
       <Table celled striped size='small'>
         <Table.Header>
           <Table.Row>
+            <Table.HeaderCell>Account ID</Table.HeaderCell>
             <Table.HeaderCell>Block Number</Table.HeaderCell>
-            <Table.HeaderCell>Address</Table.HeaderCell>
-            <Table.HeaderCell>NickName</Table.HeaderCell>
             <Table.HeaderCell>Source</Table.HeaderCell>
+            <Table.HeaderCell>Alias</Table.HeaderCell>
+            <Table.HeaderCell>Url</Table.HeaderCell>
           </Table.Row>
         </Table.Header>
 
         <Table.Body>{[...aggregatorMap.keys()].map(k =>
           <Table.Row key={k}>
-            <Table.Cell width={3} textAlign='right'>{aggregatorMap.get(k).toHuman()[1]}</Table.Cell>
             <Table.Cell width={10}>
               <span style={{ display: 'inline-block', minWidth: '31em' }}>
-                {aggregatorMap.get(k).toHuman()[0]}
+                {aggregatorMap.get(k).account_id.toHuman()}
               </span>
             </Table.Cell>
-            <Table.Cell width={3} textAlign='right'>{aggregatorMap.get(k).toHuman()[3]}</Table.Cell>
-            <Table.Cell width={3} textAlign='right'>{aggregatorMap.get(k).toHuman()[2]}</Table.Cell>
+            <Table.Cell width={3} textAlign='right'>{aggregatorMap.get(k).block_number.toHuman()}</Table.Cell>
+            <Table.Cell width={3} textAlign='right'>{aggregatorMap.get(k).source.toHuman()}</Table.Cell>
+            <Table.Cell width={3} textAlign='right'>{aggregatorMap.get(k).alias.toHuman()}</Table.Cell>
+            <Table.Cell width={3} textAlign='right'>{aggregatorMap.get(k).url.toHuman()}</Table.Cell>
           </Table.Row>
         )}
         </Table.Body>
