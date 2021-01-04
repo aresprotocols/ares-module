@@ -1,7 +1,5 @@
 use super::*;
 use crate::{mock::*};
-use frame_support::{assert_ok, assert_noop};
-use codec::{Decode, Encode};
 
 #[test]
 fn request_no_register() {
@@ -26,7 +24,7 @@ fn aggregators_can_be_registered() {
 #[test]
 fn unknown_operator() {
 	new_test_ext().execute_with(|| {
-		assert!(AresModule::register_aggregator(Origin::signed(1),"btc/eth".into(),"alice".into()).is_ok(),);
+		assert!(AresModule::register_aggregator(Origin::signed(1),"btc/eth".into(),"alice".into(),"api".into()).is_ok(),);
 		assert!(<Aggregators<Test>>::contains_key(1));
 		assert!(AresModule::initiate_request(Origin::signed(1), 2, "btcusdt".into(), vec![]).is_ok());
 	});

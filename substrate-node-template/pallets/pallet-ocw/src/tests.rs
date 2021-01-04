@@ -50,6 +50,6 @@ fn parse_price_works() {
 	];
 
 	for (json, expected) in test_data {
-		assert_eq!(expected, Example::parse_price(json));
+		assert_eq!(expected, TemplateModule::parse_price(json));
 	}
 }

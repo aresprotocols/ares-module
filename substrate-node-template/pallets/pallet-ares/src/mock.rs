@@ -53,7 +53,7 @@ impl system::Trait for Test {
 parameter_types! {
 	pub const ValidityPeriod: u64 = 10;
 	pub const AggregateQueueNum: u32 = 10;
-	pub const AggregateInterval: BlockNumber = 15;
+	pub const AggregateInterval: u64 = 15;
 }
 
 impl Trait for Test {
