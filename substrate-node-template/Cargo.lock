@@ -3580,6 +3580,7 @@ dependencies = [
  "frame-system",
  "lite-json",
  "parity-scale-codec",
+ "parking_lot 0.10.2",
  "sp-core",
  "sp-io",
  "sp-runtime",
