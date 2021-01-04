@@ -26,7 +26,7 @@ fn unknown_operator() {
 	new_test_ext().execute_with(|| {
 		assert!(AresModule::register_aggregator(Origin::signed(1),"btc/eth".into(),"alice".into(),"api".into()).is_ok(),);
 		assert!(<Aggregators<Test>>::contains_key(1));
-		assert!(AresModule::initiate_request(Origin::signed(1), 2, "btcusdt".into(), vec![]).is_ok());
+		assert!(AresModule::initiate_request(Origin::signed(1), 2, "btcusdt".into(), vec![]).is_err());
 	});
 }
 

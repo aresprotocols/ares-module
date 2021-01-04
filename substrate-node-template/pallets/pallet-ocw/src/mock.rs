@@ -1,6 +1,6 @@
 use crate::*;
-use frame_support::{assert_ok, impl_outer_event, impl_outer_origin, parameter_types, weights::Weight};
-use codec::{alloc::sync::Arc, Decode};
+use frame_support::{ impl_outer_origin, impl_outer_event, parameter_types, weights::Weight};
+use codec::{alloc::sync::Arc};
 use parking_lot::RwLock;
 use sp_core::{
 	offchain::{
@@ -18,9 +18,19 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup, Verify},
 	Perbill,
 };
+use frame_system::offchain;
 
 impl_outer_origin! {
 	pub enum Origin for Test {}
+}
+
+use crate as pallet_ocw;
+
+impl_outer_event! {
+	pub enum TestEvent for Test {
+		frame_system<T>,
+		pallet_ocw<T>,
+	}
 }
 
 // Configure a mock runtime to test the pallet.
@@ -37,15 +47,15 @@ parameter_types! {
 impl frame_system::Trait for Test {
 	type BaseCallFilter = ();
 	type Origin = Origin;
-	type Call = ();
 	type Index = u64;
+	type Call = ();
 	type BlockNumber = u64;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
-	type AccountId = u64;
+	type AccountId = sr25519::Public;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
-	type Event = ();
+	type Event = TestEvent;
 	type BlockHashCount = BlockHashCount;
 	type MaximumBlockWeight = MaximumBlockWeight;
 	type DbWeight = ();
@@ -69,25 +79,25 @@ parameter_types! {
 }
 
 impl Trait for Test {
-	type Event = ();
+	type Event = TestEvent;
 	type AuthorityId = crypto::TestAuthId;
 	type Call = Call<Test>;
 	type GracePeriod = GracePeriod;
 }
 
 pub type System = frame_system::Module<Test>;
-pub type TemplateModule = Module<Test>;
+pub type OCWModule = Module<Test>;
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	frame_system::GenesisConfig::default().build_storage::<Test>().unwrap().into()
 }
 
-impl<LocalCall> frame_system::offchain::CreateSignedTransaction<LocalCall> for Test
+impl<LocalCall> offchain::CreateSignedTransaction<LocalCall> for Test
 	where
 		Call<Test>: From<LocalCall>,
 {
-	fn create_transaction<C: frame_system::offchain::AppCrypto<Self::Public, Self::Signature>>(
+	fn create_transaction<C: offchain::AppCrypto<Self::Public, Self::Signature>>(
 		call: Call<Test>,
 		_public: <Signature as Verify>::Signer,
 		_account: <Test as frame_system::Trait>::AccountId,
@@ -100,12 +110,12 @@ impl<LocalCall> frame_system::offchain::CreateSignedTransaction<LocalCall> for T
 	}
 }
 
-impl frame_system::offchain::SigningTypes for Test {
+impl offchain::SigningTypes for Test {
 	type Public = <Signature as Verify>::Signer;
 	type Signature = Signature;
 }
 
-impl<C> frame_system::offchain::SendTransactionTypes<C> for Test
+impl<C> offchain::SendTransactionTypes<C> for Test
 	where
 		Call<Test>: From<C>,
 {
@@ -113,7 +123,7 @@ impl<C> frame_system::offchain::SendTransactionTypes<C> for Test
 	type Extrinsic = TestExtrinsic;
 }
 
-struct ExternalityBuilder;
+pub struct ExternalityBuilder;
 
 impl ExternalityBuilder {
 	pub fn build() -> (
