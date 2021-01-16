@@ -279,7 +279,7 @@ impl<T: Trait> Module<T> {
                 // we avoid sending another transaction at this time.
                 Some(Some(block)) if block_number < block + T::GracePeriod::get() => {
                     Err(RECENTLY_SENT)
-                },
+                }
                 // In every other case we attempt to acquire the lock and send a transaction.
                 _ => Ok(block_number)
             }
@@ -303,8 +303,8 @@ impl<T: Trait> Module<T> {
                 // the storage entry for that. (for instance store both block number and a flag
                 // indicating the type of next transaction to send).
                 let _transaction_type = block_number % 3u32.into();
-                     TransactionType::Signed
-            },
+                TransactionType::Signed
+            }
             // We are in the grace period, we should not send a transaction this time.
             Err(RECENTLY_SENT) => TransactionType::None,
             // We wanted to send a transaction, but failed to write the block number (acquire a
@@ -322,7 +322,7 @@ impl<T: Trait> Module<T> {
         if !signer.can_sign() {
             return Err(
                 "No local accounts available. Consider adding one via `author_insertKey` RPC."
-            )?
+            )?;
         }
         // Make an external HTTP request to fetch the current price.
         // Note this call will block until response is received.
@@ -436,11 +436,11 @@ impl<T: Trait> Module<T> {
                                         JsonValue::Number(number) => Some(number),
                                         _ => None,
                                     })
-                            },
+                            }
                             _ => None,
                         }
                     )
-            },
+            }
             _ => None
         })?;
 
@@ -475,7 +475,7 @@ impl<T: Trait> Module<T> {
         } else if prices.len() <= 2 {
             Some(prices.iter().fold(0_u32, |a, b| a.saturating_add(*b)) / prices.len() as u32)
         } else {
-            let mut prices_ap :Vec<u32> = prices.into_iter().clone().collect();
+            let mut prices_ap: Vec<u32> = prices.into_iter().clone().collect();
 
             prices_ap.sort();
             prices_ap.truncate(prices_ap.len() - 1);
@@ -484,5 +484,4 @@ impl<T: Trait> Module<T> {
             Some(rest.iter().fold(0_u32, |a, b| a.saturating_add(*b)) / rest.len() as u32)
         }
     }
-
 }

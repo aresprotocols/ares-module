@@ -10,8 +10,8 @@ use frame_system::ensure_signed;
 use sp_runtime::RuntimeDebug;
 use sp_runtime::traits::Hash;
 use sp_std::{
-	collections::vec_deque::VecDeque,
-	prelude::*,
+    collections::vec_deque::VecDeque,
+    prelude::*,
 };
 
 #[cfg(test)]
@@ -22,17 +22,17 @@ mod tests;
 
 /// Configure the pallet by specifying the parameters and types on which it depends.
 pub trait Trait: frame_system::Trait {
-	/// Because this pallet emits events, it depends on the runtime's definition of an event.
-	type Event: From<Event<Self>> + Into<<Self as frame_system::Trait>::Event>;
+    /// Because this pallet emits events, it depends on the runtime's definition of an event.
+    type Event: From<Event<Self>> + Into<<Self as frame_system::Trait>::Event>;
 
-	/// Period during which a request is valid
-	type ValidityPeriod: Get<Self::BlockNumber>;
+    /// Period during which a request is valid
+    type ValidityPeriod: Get<Self::BlockNumber>;
 
-	/// The cache aggregate price queue num.
-	type AggregateQueueNum: Get<u32>;
+    /// The cache aggregate price queue num.
+    type AggregateQueueNum: Get<u32>;
 
-	/// The duration in which oracles should on chain aggregate result.
-	type AggregateInterval: Get<Self::BlockNumber>;
+    /// The duration in which oracles should on chain aggregate result.
+    type AggregateInterval: Get<Self::BlockNumber>;
 }
 
 // Uniquely identify a request's specification understood by an Aggregator
@@ -41,36 +41,36 @@ pub type TokenSpec = Vec<u8>;
 /// Aggregator which is desc info.
 #[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, Default)]
 pub struct Aggregator<AccountId, BlockNumber> {
-	pub account_id: AccountId,
-	/// Block number at the time register is created..
-	pub block_number: BlockNumber,
-	/// exchange source
-	pub source: Vec<u8>,
-	/// alias name
-	pub alias: Vec<u8>,
-	/// api url.
-	pub url: Vec<u8>,
+    pub account_id: AccountId,
+    /// Block number at the time register is created..
+    pub block_number: BlockNumber,
+    /// exchange source
+    pub source: Vec<u8>,
+    /// alias name
+    pub alias: Vec<u8>,
+    /// api url.
+    pub url: Vec<u8>,
 }
 
 /// Requests which is quest info.
 #[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, Default)]
 pub struct Request<AccountId, BlockNumber, Hash> {
-	pub aggregator_id: AccountId,
-	/// Block number at the time request is created..
-	pub block_number: BlockNumber,
-	/// exchange source
-	pub token: TokenSpec,
-	/// chain work idzX
-	pub work_id: Hash,
+    pub aggregator_id: AccountId,
+    /// Block number at the time request is created..
+    pub block_number: BlockNumber,
+    /// exchange source
+    pub token: TokenSpec,
+    /// chain work idzX
+    pub work_id: Hash,
 }
 
 /// AggregateResult which is aggregate result.
 #[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, Default)]
 pub struct AggregateResult<BlockNumber> {
-	/// Block number at the time aggregate is created..
-	pub block_number: BlockNumber,
-	/// on chain price
-	pub price: u64,
+    /// Block number at the time aggregate is created..
+    pub block_number: BlockNumber,
+    /// on chain price
+    pub price: u64,
 }
 
 // The pallet's runtime storage items.
@@ -294,16 +294,16 @@ decl_module! {
 
 
 fn average_price(prices: Vec<u64>) -> u64 {
-	if prices.len() <= 2 {
-		prices.iter().fold(0_u64, |a, b| a.saturating_add(*b)) / prices.len() as u64
-	} else {
-		let mut prices_ap :Vec<u64> = prices.into_iter().clone().collect();
+    if prices.len() <= 2 {
+        prices.iter().fold(0_u64, |a, b| a.saturating_add(*b)) / prices.len() as u64
+    } else {
+        let mut prices_ap: Vec<u64> = prices.into_iter().clone().collect();
 
 
-		prices_ap.sort();
-		prices_ap.truncate(prices_ap.len() -1 );
-		let rest : Vec<u64> = prices_ap.drain(1..).collect();
+        prices_ap.sort();
+        prices_ap.truncate(prices_ap.len() - 1);
+        let rest: Vec<u64> = prices_ap.drain(1..).collect();
 
-		rest.iter().fold(0_u64, |a, b| a.saturating_add(*b)) / rest.len() as u64
-	}
+        rest.iter().fold(0_u64, |a, b| a.saturating_add(*b)) / rest.len() as u64
+    }
 }
