@@ -1,7 +1,7 @@
 # ares-module
 It's the pallets repo for Ares Protocol 
 
-[`Example Video`](https://www.google.com/sorry/index?continue=https://www.youtube.com/watch%3Fv%3DHlYhsHFKzJw&q=EgQvOaYCGIXIrP8FIhkA8aeDS0MbBewQM_cNNJgAufzC6Rm8niLWMgFy)
+[`Example Video`](https://www.youtube.com/watch?v=HlYhsHFKzJw&t)
 
 ### substrate-node-template is substrate node
    *  `pallet-ares` deal aggregator register and unregister
