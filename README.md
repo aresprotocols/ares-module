@@ -1,4 +1,9 @@
 # ares-module
+
+<p align="center">
+<img src=./badge_black.svg width = 400>
+</p>
+
 It's the pallets repo for Ares Protocol 
 
 [`Example Video`](https://www.youtube.com/watch?v=HlYhsHFKzJw&t)
