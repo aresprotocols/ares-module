@@ -1,4 +1,4 @@
-# ares-module
+# ares-module &middot; [![GitHub license](https://img.shields.io/badge/license-GPL3%2FApache2-blue)](#LICENSE) [![GitLab Status](https://gitlab.parity.io/parity/substrate/badges/master/pipeline.svg)](https://gitlab.parity.io/parity/substrate/pipelines) ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg) [![Discord](https://img.shields.io/badge/discord-join%20chat-blue.svg)](https://discord.gg/gWGG63zJVk)
 
 <p align="center">
 <img src=./badge_black.svg width = 400>
