@@ -39,7 +39,7 @@ It's the pallets repo for Ares Protocol
 #### getPrice
 Suppot `BTC`,`ETH`, `DOT`
 
-http://141.164.45.97:8080/ares/api/getPartyPrice/btcusdt
+http://api.aresprotocol.com/api/getPartyPrice/btcusdt
 ```
 {"msg":"success","code":0,"data":{"market":null,"symbol":"btcusdt","price":18319.72,"nodes":null,"sn":null,"systs":1607528442761,"ts":1607528442761}}
 ```
